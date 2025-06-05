@@ -21,30 +21,40 @@ from config.settings import Settings
 
 class UpdateManager:
     def __init__(self):
-        # Load local version from config/Triple_V_Config.json
-        try:
-            cfg_path = Settings.CONFIG_DIR / "Triple_V_Config.json"
-            with open(cfg_path, encoding="utf-8") as cf:
-                cfg = json.load(cf)
-                self.current_version = cfg.get("version", Settings.APP_VERSION)
-        except Exception:
-            self.current_version = Settings.APP_VERSION
+        # We will load the up‐to‐date version from disk each time we check for updates.
+        self.current_version = None
 
-        # Remote JSON that holds { "version": "X.Y.Z", "download_url": "<raw URL or placeholder>" }
+        # Remote JSON that holds { "version": "X.Y.Z", "download_url": "<raw URL to TripleV.zip>" }
         self.update_config_url = (
             "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/Triple_V_Updater.json"
         )
 
-        # Fallback raw-GitHub ZIP URL in case update_data["download_url"] is not a .zip
+        # Fallback raw‐GitHub ZIP URL in case update_data["download_url"] is not a .zip
         self.fallback_zip_url = (
             "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/dist/TripleV.zip"
         )
 
+    def _get_local_version(self) -> str:
+        """
+        Read the current version from config/Triple_V_Config.json on disk.
+        Returns a string like "1.0.0", or Settings.APP_VERSION if anything goes wrong.
+        """
+        try:
+            cfg_path = Settings.CONFIG_DIR / "Triple_V_Config.json"
+            with open(cfg_path, "r", encoding="utf-8") as cf:
+                cfg = json.load(cf)
+                return cfg.get("version", Settings.APP_VERSION)
+        except Exception:
+            return Settings.APP_VERSION
+
     def check_app_update(self):
         """
         Fetch Triple_V_Updater.json and compare remote version to local.
-        Returns (is_update_available: bool, latest_version: str, update_data: dict).
+        Returns a tuple: (is_update_available: bool, latest_version: str, update_data: dict).
         """
+        # Always reload the local version from disk before comparing
+        self.current_version = self._get_local_version()
+
         try:
             response = requests.get(self.update_config_url, timeout=10)
             response.raise_for_status()
@@ -83,7 +93,7 @@ class UpdateManager:
         download_url = None
         if update_data and isinstance(update_data.get("download_url"), str):
             download_url = update_data["download_url"]
-        # If the provided URL does not end with ".zip", use the fallback raw-GitHub path
+        # If the provided URL does not end with ".zip", use the fallback raw‐GitHub path
         if not download_url or not download_url.lower().endswith(".zip"):
             download_url = self.fallback_zip_url
 
@@ -92,7 +102,7 @@ class UpdateManager:
             success = self._download_extract_replace(parent_widget, download_url)
 
             if success:
-                # Update local Triple_V_Config.json with the new version
+                # 1) Persist the new version on disk
                 cfg_path = Settings.CONFIG_DIR / "Triple_V_Config.json"
                 try:
                     with open(cfg_path, "r+", encoding="utf-8") as cf:
@@ -101,10 +111,11 @@ class UpdateManager:
                         cf.seek(0)
                         json.dump(cfg, cf, indent=4)
                         cf.truncate()
-                        # Update cached version so subsequent checks are correct
-                        self.current_version = new_version
                 except Exception as e:
                     print(f"[UpdateManager] Failed to update Triple_V_Config.json: {e}")
+
+                # 2) Also update our in‐memory current_version so subsequent calls see the change
+                self.current_version = new_version
 
                 QMessageBox.information(
                     parent_widget,
