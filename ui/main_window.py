@@ -120,4 +120,4 @@ class MainWindow(QMainWindow):
         else:
             from PyQt5.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Updates", 
-                                  f"Triple V is up to date (v{Settings.APP_VERSION})")
+                                  f"Triple V is up to date (v{self.update_manager.current_version})")
