@@ -109,9 +109,9 @@ python launch_triple_v.py
    ```
 
 3. **Categories**:
-   - `autosar`: AUTOSAR-related tools
-   - `non_autosar`: Non-AUTOSAR tools
-   - `mixed`: Mixed/Generic tools
+   - `Classical AUTOSAR`: Classical-related tools
+   - `Adaptive AUTOSAR`: Adaptive-related tools
+   - `generic`: Generic tools
 
 ### For End Users:
 
