@@ -1,6 +1,6 @@
 # Triple V Desktop Application
 
-A modern, modular tool management platform for automotive software development with a focus on AUTOSAR and related tools.
+✨Triple V✨: Vehiclevo Versatile Vault is a comprehensive tool management platform designed to be a unified Hub for all Vehiclevo tools.
 
 ## Project Structure
 
@@ -81,12 +81,12 @@ The update system works as follows:
 
 ### Requirements
 ```bash
-pip install PyQt5 requests packaging
+pip install -r triple-v-requirements.txt
 ```
 
 ### Running the Application
 ```bash
-python main.py
+python launch_triple_v.py
 ```
 
 ## Adding New Tools
@@ -172,31 +172,26 @@ TEXT_COLOR = "#ffffff"         # White text
 The app expects tools to follow this GitHub structure:
 - Latest release with zip asset, OR
 - Direct file at `repo/main/tool_name.zip`
-- `Triple_V_Config.json` in main branch
+- `Triple_V_Config.json` in main branch.
 
 ## Future Enhancements
 
-1. **Tool Search**: Add search functionality
-2. **Tool Ratings**: User ratings and reviews
-3. **Categories Tags**: Multiple tags per tool
-4. **Plugin System**: Dynamic tool loading
-5. **Cloud Sync**: Sync tools across devices
-6. **Tool Dependencies**: Handle tool dependencies
-7. **Batch Operations**: Download/update multiple tools
+1. **Tool Search**: Add search functionality.
+2. **Tool Ratings**: User ratings and reviews.
 
 ## Troubleshooting
 
 ### Common Issues:
 
 1. **Tool won't download**:
-   - Check GitHub URL is correct
-   - Ensure `Triple_V_Config.json` exists in repo
-   - Verify zip file is accessible
+   - Check GitHub URL is correct.
+   - Ensure `Triple_V_Config.json` exists in the repo main path.
+   - Verify zip file is accessible in the repo main path.
 
 2. **Update not detected**:
-   - Check version format (must be SemVer)
-   - Ensure version in repo is higher
-   - Try restarting the application
+   - Check version format (must be SemVer).
+   - Ensure version in repo is higher.
+   - Try restarting the application.
 
 3. **UI scaling issues**:
    - Application supports high DPI displays
@@ -210,5 +205,5 @@ The app expects tools to follow this GitHub structure:
 
 For issues or questions:
 - Create an issue on GitHub
-- Contact the development team
-- Check documentation at https://triple-v.docs
+- Contact abdallah.issa@vehiclevo.com
+- Check documentation at (TODO:will host the documentation soon somewhere)
