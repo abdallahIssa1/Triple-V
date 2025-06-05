@@ -56,3 +56,4 @@ config/user_settings.json
 *.spec
 build/
 dist/
+dist
