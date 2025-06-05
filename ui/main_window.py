@@ -11,6 +11,7 @@ from ui.dialogs.add_vault_dialog import AddVaultDialog
 from ui.dialogs.about_dialog import AboutDialog
 from utils.update_manager import UpdateManager
 import webbrowser
+from PyQt5.QtWidgets import QDesktopWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,9 +21,22 @@ class MainWindow(QMainWindow):
         
     def init_ui(self):
         self.setWindowTitle(Settings.APP_NAME)
-        self.setGeometry(100, 100, 1200, 800)
-        self.setMinimumSize(800, 600)
+
+        # Get screen size for better adaptability
+        screen = QDesktopWidget().screenGeometry()
         
+        # Set window size to 80% of screen size
+        width  = int(screen.width() * 0.8)
+        height = int(screen.height() * 0.8)
+
+        # Center the window
+        x = (screen.width() - width) // 2
+        y = (screen.height() - height) // 2
+
+        self.setGeometry(x, y, width, height)
+        self.setMinimumSize(800, 600)
+
+
         # Set dark palette
         self.set_dark_palette()
         
@@ -50,15 +64,15 @@ class MainWindow(QMainWindow):
         self.main_view.about_clicked.connect(self.show_about_dialog)
         self.main_view.check_updates_clicked.connect(self.check_for_updates)
         
-        self.autosar_view = ToolsView("AUTOSAR-Related Tools", "autosar")
-        self.non_autosar_view = ToolsView("Non-AUTOSAR-Related Tools", "non_autosar")
-        self.mixed_view = ToolsView("Mixed/Generic Tools", "mixed")
+        self.Classical_AUTOSAR = ToolsView("Classical AUTOSAR Tools", "Classical_AUTOSAR")
+        self.Adaptive_AUTOSAR_view = ToolsView("Adaptive AUTOSAR Tools", "Adaptive_AUTOSAR")
+        self.generic_view = ToolsView("Generic Tools", "generic")
         
         # Add views to stack
         self.content_stack.addWidget(self.main_view)
-        self.content_stack.addWidget(self.autosar_view)
-        self.content_stack.addWidget(self.non_autosar_view)
-        self.content_stack.addWidget(self.mixed_view)
+        self.content_stack.addWidget(self.Classical_AUTOSAR)
+        self.content_stack.addWidget(self.Adaptive_AUTOSAR_view)
+        self.content_stack.addWidget(self.generic_view)
         
         # Set initial view
         self.content_stack.setCurrentWidget(self.main_view)
@@ -83,12 +97,12 @@ class MainWindow(QMainWindow):
     def on_navigation_clicked(self, view_name):
         if view_name == "main":
             self.content_stack.setCurrentWidget(self.main_view)
-        elif view_name == "autosar":
-            self.content_stack.setCurrentWidget(self.autosar_view)
-        elif view_name == "non_autosar":
-            self.content_stack.setCurrentWidget(self.non_autosar_view)
-        elif view_name == "mixed":
-            self.content_stack.setCurrentWidget(self.mixed_view)
+        elif view_name == "Classical_AUTOSAR":
+            self.content_stack.setCurrentWidget(self.Classical_AUTOSAR)
+        elif view_name == "Adaptive_AUTOSAR":
+            self.content_stack.setCurrentWidget(self.Adaptive_AUTOSAR_view)
+        elif view_name == "generic":
+            self.content_stack.setCurrentWidget(self.generic_view)
             
     def show_add_vault_dialog(self):
         dialog = AddVaultDialog(self)
@@ -100,9 +114,9 @@ class MainWindow(QMainWindow):
         
     def check_for_updates(self):
         # Check for Triple V updates
-        has_update, latest_version = self.update_manager.check_app_update()
+        has_update, latest_version, update_data = self.update_manager.check_app_update()
         if has_update:
-            self.update_manager.show_update_dialog(self, latest_version)
+            self.update_manager.show_update_dialog(self, latest_version, update_data)
         else:
             from PyQt5.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Updates", 

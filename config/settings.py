@@ -13,6 +13,13 @@ class Settings:
     DOWNLOADS_DIR = BASE_DIR / "downloads"
     CONFIG_DIR = BASE_DIR / "config"
     TOOLS_CONFIG_FILE = CONFIG_DIR / "tools_registry.json"
+    APP_EXE_PATH = str(BASE_DIR / "TripleV.exe")
+
+    # Add icon path
+    ASSETS_DIR = BASE_DIR / "assets"
+    LOGO_PATH = ASSETS_DIR / "triple_v_logo.png"
+    ICON_PATH = ASSETS_DIR / "triple_v_logo.ico"
+    
     
     # Create directories if they don't exist
     DOWNLOADS_DIR.mkdir(exist_ok=True)
@@ -20,7 +27,7 @@ class Settings:
     
     # GitHub settings
     GITHUB_BASE_URL = "https://github.com/"
-    UPDATE_CHECK_URL = "https://github.com/YourOrg/TripleV/releases/latest"
+    UPDATE_CHECK_URL = "https://github.com/abdallahIssa1/Triple-V/blob/main/TripleV.exe"
     
     # UI Settings
     SIDEBAR_WIDTH = 60
@@ -41,9 +48,9 @@ class Settings:
             with open(cls.TOOLS_CONFIG_FILE, 'r', encoding="utf-8") as f:
                 return json.load(f)
         return {
-            "autosar": [],
-            "non_autosar": [],
-            "mixed": []
+            "Classical_AUTOSAR": [],
+            "Adaptive_AUTOSAR": [],
+            "generic": []
         }
     
     @classmethod

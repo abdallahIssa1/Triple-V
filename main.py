@@ -14,6 +14,8 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Triple V")
     app.setOrganizationName("Triple V Platform")
+
+    icon_path = os.path.join(os.path.dirname(__file__), "assets", "triple_v_logo.png.png")
     
     # Load stylesheet
     app.setStyleSheet(load_stylesheet())

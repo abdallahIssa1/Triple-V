@@ -72,7 +72,7 @@ def main():
                 install_dependencies()
             except Exception as e:
                 print(f"Error installing dependencies: {e}")
-                print("Please install manually using: pip install -r requirements.txt")
+                print("Please install manually using: pip install -r triple-v-requirements.txt")
                 sys.exit(1)
         else:
             print("Please install dependencies manually using: pip install -r requirements.txt")

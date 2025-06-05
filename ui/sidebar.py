@@ -75,9 +75,9 @@ class Sidebar(QWidget):
         
         nav_items = [
             ("main", "Home", "🏠"),
-            ("autosar", "AUTOSAR-Related", "🌱"),
-            ("non_autosar", "Non-AUTOSAR-Related", "💻"),
-            ("mixed", "Mixed/Generic Tools", "🧩")
+            ("Classical_AUTOSAR", "Classical AUTOSAR Tools", "🌱"),
+            ("Adaptive_AUTOSAR", "Adaptive AUTOSAR Tools", "🐧"),
+            ("generic", "Generic Tools", "🧩")
         ]
         
         for nav_id, text, icon in nav_items:

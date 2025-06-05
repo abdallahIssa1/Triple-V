@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect
-from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QFont
-from PyQt5.QtSvg import QSvgWidget
+from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QFont, QPixmap
 from config.settings import Settings
 
 class AnimatedLogo(QWidget):
@@ -9,6 +8,20 @@ class AnimatedLogo(QWidget):
         super().__init__()
         self.setFixedSize(200, 200)
         self.angle = 0
+        
+        # Load logo image
+        self.logo_pixmap = None
+        if Settings.LOGO_PATH.exists():
+            try:
+                self.logo_pixmap = QPixmap(str(Settings.LOGO_PATH))
+                if not self.logo_pixmap.isNull():
+                    self.logo_pixmap = self.logo_pixmap.scaled(180, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                else:
+                    print(f"Failed to load logo from {Settings.LOGO_PATH}")
+                    self.logo_pixmap = None
+            except Exception as e:
+                print(f"Error loading logo: {e}")
+                self.logo_pixmap = None
         
         # Animation timer
         self.timer = QTimer()
@@ -28,19 +41,11 @@ class AnimatedLogo(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Background with gradient
-        gradient = QLinearGradient(0, 0, self.width(), self.height())
-        gradient.setColorAt(0, QColor(Settings.PRIMARY_COLOR))
-        gradient.setColorAt(1, QColor(Settings.SECONDARY_COLOR))
-        
-        painter.setBrush(gradient)
-        painter.setPen(Qt.NoPen)
-        painter.drawRoundedRect(self.rect(), 30, 30)
-        
-        # Draw VVV text
-        painter.setPen(QColor(26, 26, 26))
-        painter.setFont(QFont("Arial", 72, QFont.Bold))
-        painter.drawText(self.rect(), Qt.AlignCenter, "V")
+        if self.logo_pixmap:
+            # Draw the logo PNG
+            x = (self.width() - self.logo_pixmap.width()) // 2
+            y = (self.height() - self.logo_pixmap.height()) // 2
+            painter.drawPixmap(x, y, self.logo_pixmap)
         
         # Animated shine effect
         painter.save()

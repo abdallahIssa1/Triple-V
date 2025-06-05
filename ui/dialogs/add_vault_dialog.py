@@ -1,50 +1,69 @@
-from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QLineEdit, QCheckBox, QPushButton, QMessageBox)
-from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect
-from PyQt5.QtGui import QFont, QPainter, QColor
+from PyQt5.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+    QLineEdit, QCheckBox, QPushButton, QMessageBox,
+    QComboBox, QScrollArea, QWidget
+)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QFont
 from config.settings import Settings
 import smtplib
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import re
 
 class AddVaultDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add to Vault")
-        self.setFixedSize(500, 600)
+        # Keep a fixed size, allowing scrollbars to appear if needed
+        self.setFixedSize(550, 600)
         self.setModal(True)
+
+        # Email and URL validation regex
+        self.mail_regex = r'\b[A-Za-z0-9._%+-]+@vehiclevo\.(com|de)\b'
+        self.url_regex = r'^(https?:\/\/)?github\.com\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?$'
+
         self.init_ui()
-        
+
     def init_ui(self):
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {Settings.SURFACE_COLOR};
-                border: 2px solid {Settings.PRIMARY_COLOR};
-                border-radius: 16px;
-            }}
-        """)
-        
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(40, 40, 40, 40)
+        # 1) Top‐level layout for the dialog itself
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)  # We'll let inner widgets handle padding
+
+        # 2) Create a QScrollArea (vertical scrollbar enabled by default)
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)  # Let the content widget expand to the width
+        main_layout.addWidget(scroll)
+
+        # 3) Create a separate QWidget to hold all form content
+        content_widget = QWidget()
+        scroll.setWidget(content_widget)
+
+        # 4) Attach a VBoxLayout to content_widget, and move all existing widgets into it
+        layout = QVBoxLayout(content_widget)
+        layout.setContentsMargins(50, 50, 50, 50)  # replicate your previous margins
         layout.setSpacing(20)
-        
-        # Header
+
+        # ----- HEADER -----
         header = QLabel("Add to Vault")
-        header.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        header.setFont(QFont("Segoe UI", 28, QFont.Bold))
         header.setAlignment(Qt.AlignCenter)
         header.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
         layout.addWidget(header)
-        
-        # Checkboxes
+
+        # Add some vertical space after header
+        layout.addSpacing(15)
+
+        # ----- CHECKBOXES -----
         self.checkboxes = []
         checkbox_texts = [
-            "I have tested the tool",
-            "I have checked There're no compatibility or portability Issues",
-            "I have provided a guide for the end user"
+            "I have tested the tool core functionality.",
+            "I have checked there're no portability Issues.",
+            "I have provided a guide for the enduser."
         ]
-        
         for text in checkbox_texts:
-            checkbox_container = QHBoxLayout()
+            # Create a simpler, more familiar checkbox style:
             checkbox = QCheckBox(text)
             checkbox.setFont(QFont("Segoe UI", 11))
             checkbox.stateChanged.connect(self.check_form_complete)
@@ -52,73 +71,148 @@ class AddVaultDialog(QDialog):
                 QCheckBox {{
                     color: {Settings.TEXT_COLOR};
                     spacing: 10px;
+                    padding: 5px 0;
                 }}
+                /* Draw a light border so the user sees a checkbox box */
                 QCheckBox::indicator {{
-                    width: 24px;
-                    height: 24px;
+                    width: 18px;
+                    height: 18px;
                     border: 2px solid {Settings.PRIMARY_COLOR};
-                    border-radius: 4px;
-                    background-color: transparent;
+                    border-radius: 3px;
+                    background-color: {Settings.BACKGROUND_COLOR};
                 }}
+                /* When checked, let Qt draw the standard checkmark over the colored box */
                 QCheckBox::indicator:checked {{
                     background-color: {Settings.PRIMARY_COLOR};
-                    image: url(triple_v_logo.png);
                 }}
             """)
             self.checkboxes.append(checkbox)
-            checkbox_container.addWidget(checkbox)
-            layout.addLayout(checkbox_container)
-            
-        # Input fields
-        self.inputs = {}
-        input_fields = [
-            ("Which category", "Which category", "Enter in which category the tool should be in"),
-            ("Your email", "Your email", "Enter Your Vehiclevo email"),
-            ("GitHub Repo Link", "GitHub Repo Link", "Enter GitHub Repo Link")
-        ]
-        
-        for field_id, label_text, placeholder in input_fields:
-            label = QLabel(label_text)
-            label.setFont(QFont("Segoe UI", 12, QFont.Bold))
-            label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
-            
-            line_edit = QLineEdit()
-            line_edit.setPlaceholderText(placeholder)
-            line_edit.setFont(QFont("Segoe UI", 11))
-            line_edit.textChanged.connect(self.check_form_complete)
-            line_edit.setStyleSheet(f"""
-                QLineEdit {{
-                    background-color: rgba(255, 255, 255, 0.05);
-                    border: 2px solid #444;
-                    border-radius: 8px;
-                    padding: 10px;
-                    color: {Settings.TEXT_COLOR};
-                    font-size: 14px;
-                }}
-                QLineEdit:focus {{
-                    border-color: {Settings.PRIMARY_COLOR};
-                    background-color: rgba(0, 255, 136, 0.05);
-                }}
-            """)
-            
-            self.inputs[field_id] = line_edit
-            layout.addWidget(label)
-            layout.addWidget(line_edit)
-            
-        layout.addStretch()
-        
-        # Buttons
+            layout.addWidget(checkbox)
+        layout.addSpacing(15)
+
+        # ----- CATEGORY DROPDOWN -----
+        category_label = QLabel("Which Category")
+        category_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        category_label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
+        layout.addWidget(category_label)
+
+        self.category_combo = QComboBox()
+        self.category_combo.addItems([
+            "Classical AUTOSAR related tools",
+            "Adaptive AUTOSAR related tools",
+            "Generic Tools"
+        ])
+        self.category_combo.currentTextChanged.connect(self.check_form_complete)
+        self.category_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 2px solid #444;
+                border-radius: 8px;
+                padding: 12px 15px;
+                color: {Settings.TEXT_COLOR};
+                font-size: 14px;
+                min-height: 25px;
+            }}
+            QComboBox:focus {{
+                border-color: {Settings.PRIMARY_COLOR};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                width: 30px;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid {Settings.PRIMARY_COLOR};
+                margin-right: 10px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {Settings.SURFACE_COLOR};
+                border: 1px solid {Settings.PRIMARY_COLOR};
+                selection-background-color: {Settings.PRIMARY_COLOR};
+                color: {Settings.TEXT_COLOR};
+            }}
+        """)
+        layout.addWidget(self.category_combo)
+        layout.addSpacing(15)
+
+        # ----- EMAIL INPUT -----
+        email_label = QLabel("Your Email")
+        email_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        email_label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
+        layout.addWidget(email_label)
+
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("your.name@vehiclevo.com or @vehiclevo.de")
+        self.email_input.textChanged.connect(self.check_form_complete)
+        self.email_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 2px solid #444;
+                border-radius: 8px;
+                padding: 12px 15px;
+                color: {Settings.TEXT_COLOR};
+                font-size: 14px;
+            }}
+            QLineEdit:focus {{
+                border-color: {Settings.PRIMARY_COLOR};
+                background-color: rgba(0, 255, 136, 0.05);
+            }}
+        """)
+        layout.addWidget(self.email_input)
+        layout.addSpacing(15)
+
+        # ----- GITHUB URL INPUT -----
+        github_label = QLabel("Link to GitHub Repository")
+        github_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        github_label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
+        layout.addWidget(github_label)
+
+        self.github_input = QLineEdit()
+        self.github_input.setPlaceholderText("https://github.com/username/repository")
+        self.github_input.textChanged.connect(self.check_form_complete)
+        self.github_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 2px solid #444;
+                border-radius: 8px;
+                padding: 12px 15px;
+                color: {Settings.TEXT_COLOR};
+                font-size: 14px;
+                min-height: 25px;
+            }}
+            QLineEdit:focus {{
+                border-color: {Settings.PRIMARY_COLOR};
+                background-color: rgba(0, 255, 136, 0.05);
+            }}
+        """)
+        layout.addWidget(self.github_input)
+        layout.addSpacing(15)
+
+        # ----- ERROR LABEL -----
+        self.error_label = QLabel("")
+        self.error_label.setStyleSheet("color: #ff4444; font-size: 12px; padding: 5px 0;")
+        self.error_label.setWordWrap(True)
+        self.error_label.hide()
+        layout.addWidget(self.error_label)
+
+        layout.addStretch()  # Push buttons to the bottom
+
+        # ----- BUTTONS -----
         button_layout = QHBoxLayout()
-        
+
         self.submit_btn = QPushButton("Submit to Vault")
-        self.submit_btn.setFixedHeight(50)
+        self.submit_btn.setFixedHeight(45)
+        self.submit_btn.setFixedWidth(180)
         self.submit_btn.setEnabled(False)
         self.submit_btn.setCursor(Qt.PointingHandCursor)
         self.submit_btn.clicked.connect(self.submit_form)
         self.update_submit_button_style()
-        
+
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setFixedHeight(40)
+        cancel_btn.setFixedHeight(45)
+        cancel_btn.setFixedWidth(180)
         cancel_btn.setCursor(Qt.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
         cancel_btn.setStyleSheet(f"""
@@ -128,19 +222,18 @@ class AddVaultDialog(QDialog):
                 border-radius: 8px;
                 color: {Settings.PRIMARY_COLOR};
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 15px;
             }}
             QPushButton:hover {{
                 background-color: {Settings.PRIMARY_COLOR};
                 color: {Settings.BACKGROUND_COLOR};
             }}
         """)
-        
+
         button_layout.addWidget(self.submit_btn)
         button_layout.addWidget(cancel_btn)
-        
         layout.addLayout(button_layout)
-        
+
     def update_submit_button_style(self):
         if self.submit_btn.isEnabled():
             self.submit_btn.setStyleSheet(f"""
@@ -167,24 +260,106 @@ class AddVaultDialog(QDialog):
                     font-weight: bold;
                 }
             """)
-            
+
     def check_form_complete(self):
+        # Check that all checkboxes are checked
         all_checked = all(cb.isChecked() for cb in self.checkboxes)
-        all_filled = all(le.text().strip() for le in self.inputs.values())
-        
-        self.submit_btn.setEnabled(all_checked and all_filled)
+        email = self.email_input.text().strip()
+        github_url = self.github_input.text().strip()
+
+        # Validate email
+        email_valid = bool(re.match(self.mail_regex, email)) if email else False
+
+        # Validate GitHub URL
+        url_valid = bool(re.match(self.url_regex, github_url)) if github_url else False
+
+        # Show validation errors if needed
+        errors = []
+        if not all_checked and any(cb.isChecked() for cb in self.checkboxes):
+            errors.append("Please check all confirmation boxes")
+        if email and not email_valid:
+            errors.append("Email must be @vehiclevo.com or @vehiclevo.de")
+        if github_url and not url_valid:
+            errors.append("Must be a valid GitHub repository URL")
+
+        if errors:
+            self.error_label.setText(" • ".join(errors))
+            self.error_label.show()
+        else:
+            self.error_label.hide()
+
+        # Enable submit only if everything is filled and valid
+        all_filled = bool(email and github_url)
+        all_valid = bool(email_valid and url_valid)
+        self.submit_btn.setEnabled(all_checked and all_filled and all_valid)
         self.update_submit_button_style()
-        
+
     def submit_form(self):
-        # Show success message
-        self.show_success_splash()
-        
-        # Send email (implement your email logic here)
-        # self.send_email()
-        
-        # Close dialog after delay
-        QTimer.singleShot(2000, self.accept)
-        
+        # Collect form data
+        form_data = {
+            "category": self.category_combo.currentText(),
+            "email": self.email_input.text().strip(),
+            "github_url": self.github_input.text().strip()
+        }
+
+        # Send email
+        if self.send_email(form_data):
+            # Show success label, then auto‐close
+            self.show_success_splash()
+            QTimer.singleShot(2000, self.accept)
+        else:
+            QMessageBox.warning(self, "Error", "Failed to send email. Please try again.")
+
+    def send_email(self, form_data):
+        """Send email with vault submission data."""
+        try:
+            # Email configuration (update with real SMTP settings)
+            smtp_server = "smtp.vehiclevo.com"
+            smtp_port = 587
+            sender_email = "abdallah.issa@vehiclevo.com"
+            sender_password = "!G`8NoV:cvKoFv3^wia"
+            recipient_email = "abdallah.issa@vehiclevo.com"
+
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = recipient_email
+            msg['Subject'] = f"New Tool Submission - {form_data['category']}"
+
+            body = f"""
+            New Tool Submission to Triple V Vault
+            =====================================
+
+            Submission Details:
+            ------------------
+            Category: {form_data['category']}
+            Submitted By: {form_data['email']}
+            GitHub Repository: {form_data['github_url']}
+            Submission Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+            Action Required:
+            ---------------
+            1. Review the GitHub repository for Triple_V_Config.json
+            2. Verify the tool meets quality standards.
+            3. Add to tools_registry.json if approved.
+
+            --
+            Triple V Platform
+            Automated Submission System
+            """
+            msg.attach(MIMEText(body, 'plain'))
+
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+
+            print(f"Email sent successfully for: {form_data}")
+            return True
+
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+            return False
+
     def show_success_splash(self):
         splash = QLabel("✓ Successfully Added to Vault!", self)
         splash.setAlignment(Qt.AlignCenter)
@@ -197,9 +372,8 @@ class AddVaultDialog(QDialog):
                 border-radius: 16px;
             }}
         """)
-        
-        # Position at center
         splash.resize(400, 100)
-        splash.move(50, 250)
+        # Center the splash inside the dialog’s 550×600 area
+        splash.move((550 - splash.width()) // 2, (600 - splash.height()) // 2)
         splash.show()
         splash.raise_()

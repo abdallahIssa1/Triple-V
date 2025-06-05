@@ -1,5 +1,5 @@
 {
-    "autosar": [
+    "Classical_AUTOSAR": [
         {
             "name": "NvM Dump Analyzer",
             "description": "Analyze the dump of the NvM -FEE based- and gets you all the info you have dreamt of.",
@@ -7,7 +7,7 @@
             "icon": "📊"
         }
     ],
-    "non_autosar": [
+    "Adaptive_AUTOSAR": [
         {
             "name": "Code Generator Pro",
             "description": "Advanced code generation utility",
@@ -27,7 +27,7 @@
             "icon": "🛠️"
         }
     ],
-    "mixed": [
+    "generic": [
         {
             "name": "Documentation Slayer",
             "description": "Visual Studio Code extension automates the creation of unit-design documentation\nand lets you export your results as a structured Excel spreadsheet, a Markdown file, or a Word document",
