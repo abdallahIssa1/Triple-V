@@ -35,7 +35,7 @@ class Settings:
         # Calculate paths without referencing Settings class
         base_dir = Path(__file__).resolve().parent.parent
         config_dir = base_dir / "config"
-        cfg_path = config_dir / "Triple_V_Config.json"
+        cfg_path = config_dir / "Triple_V_Updater.json"
         default_version = "1.0.0"
 
         try:
