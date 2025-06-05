@@ -26,7 +26,7 @@ class UpdateManager:
 
         # Remote JSON that holds { "version": "X.Y.Z", "download_url": "<raw URL to TripleV.zip>" }
         self.update_config_url = (
-            "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/Triple_V_Updater.json"
+            "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/config/Triple_V_Updater.json"
         )
 
         # Fallback raw‐GitHub ZIP URL in case update_data["download_url"] is not a .zip
