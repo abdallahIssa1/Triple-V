@@ -6,7 +6,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -55,5 +54,3 @@ config/user_settings.json
 # Build artifacts
 *.spec
 build/
-dist/
-dist
