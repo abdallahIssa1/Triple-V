@@ -15,8 +15,8 @@ def main():
     app.setApplicationName("Triple V")
     app.setOrganizationName("Triple V Platform")
 
-    icon_path = os.path.join(os.path.dirname(__file__), "assets", "triple_v_logo.png.png")
-    
+    icon_path = os.path.join(os.path.dirname(__file__), "assets", "triple_v_logo.ico")
+    app.setWindowIcon(QIcon(str(icon_path)))
     # Load stylesheet
     app.setStyleSheet(load_stylesheet())
     
