@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect
-from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QFont, QPixmap
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect, QSize
+from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QFont, QPixmap, QMovie
 from config.settings import Settings
 
 class AnimatedLogo(QWidget):
@@ -9,19 +9,25 @@ class AnimatedLogo(QWidget):
         self.setFixedSize(200, 200)
         self.angle = 0
         
-        # Load logo image
+        # Try to load animated GIF first, then fall back to PNG
+        self.movie = None
         self.logo_pixmap = None
-        if Settings.LOGO_PATH.exists():
+        
+        gif_path = Settings.ASSETS_DIR / "triple_v_pulse.gif"
+        if gif_path.exists():
+            self.movie = QMovie(str(gif_path))
+            self.movie.setScaledSize(QSize(180, 180))
+            self.movie.frameChanged.connect(self.update)
+            self.movie.start()
+        elif Settings.LOGO_PATH.exists():
             try:
                 self.logo_pixmap = QPixmap(str(Settings.LOGO_PATH))
                 if not self.logo_pixmap.isNull():
                     self.logo_pixmap = self.logo_pixmap.scaled(180, 180, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 else:
-                    print(f"Failed to load logo from {Settings.LOGO_PATH}")
                     self.logo_pixmap = None
             except Exception as e:
                 print(f"Error loading logo: {e}")
-                self.logo_pixmap = None
         
         # Animation timer
         self.timer = QTimer()
@@ -41,8 +47,14 @@ class AnimatedLogo(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        if self.logo_pixmap:
-            # Draw the logo PNG
+        if self.movie and self.movie.state() == QMovie.Running:
+            # Draw the current frame of the GIF
+            pixmap = self.movie.currentPixmap()
+            x = (self.width() - pixmap.width()) // 2
+            y = (self.height() - pixmap.height()) // 2
+            painter.drawPixmap(x, y, pixmap)
+        elif self.logo_pixmap:
+            # Draw the static PNG
             x = (self.width() - self.logo_pixmap.width()) // 2
             y = (self.height() - self.logo_pixmap.height()) // 2
             painter.drawPixmap(x, y, self.logo_pixmap)
