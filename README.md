@@ -1,209 +1,237 @@
-# Triple V Desktop Application
+# Triple V - Vehiclevo Versatile Vault 🗃️🛒
 
-✨Triple V✨: Vehiclevo Versatile Vault is a comprehensive tool management platform designed to be a unified Hub for all Vehiclevo tools.
+<div align="center">
+  <img src="assets/triple_v_logo.png" alt="Triple V Logo" width="200"/>
+  
+  [![Version](https://img.shields.io/badge/version-4.0.0-green.svg)](https://github.com/abdallahIssa1/Triple-V/releases/latest)
+  [![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
+  [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
+  
+  **A comprehensive tool management platform for Vehiclevo**
+</div>
 
-## Project Structure
+## 📋 Table of Contents
 
-```
-triple-v/
-├── main.py                     # Application entry point
-├── config/
-│   ├── settings.py            # Application settings and constants
-│   └── tools_registry.json    # Tools configuration file
-├── ui/
-│   ├── main_window.py         # Main application window
-│   ├── sidebar.py             # Animated sidebar navigation
-│   ├── views/
-│   │   ├── main_view.py       # Main view with logo and buttons
-│   │   └── tools_view.py      # Tools grid view
-│   ├── components/
-│   │   └── tool_card.py       # Individual tool card widget
-│   └── dialogs/
-│       ├── add_vault_dialog.py    # Add to vault dialog
-│       └── about_dialog.py        # About dialog
-├── utils/
-│   ├── styles.py              # Global stylesheet
-│   ├── download_manager.py    # Tool download/update logic
-│   └── update_manager.py      # App update checker
-├── downloads/                 # Downloaded tools directory
-└── assets/
-    └── logo.svg              # Triple V logo
+* [Overview](#overview)
+* [Features](#features)
+* [Installation](#installation)
+* [Usage Guide](#usage-guide)
+* [For Developers](#for-developers)
+* [Tool Categories](#tool-categories)
+* [Contributing](#contributing)
+* [Support](#support)
+* [License](#License)
 
-```
+## Overview
+
+**Triple V (Vehiclevo Versatile Vault)** Vehiclevo Versatile Vault is a comprehensive tool management platform designed to be a unified Hub for all Vehiclevo tools.
+
+### Why Triple V?
+
+- **Vehiclevo**: Built only for Vehiclevo.
+- **Versatile**: Supporting tools across the entire automotive development spectrum.
+- **Vault**: A versioned repository where every tool is documented and easily discoverable.
 
 ## Features
 
-### 1. **Modular Architecture**
-- Clean separation of concerns
-- Easy to extend with new tools
-- Reusable components
+### 🔧 Core Features
 
-### 2. **Tool Management System**
-- **Download/Update Mechanism**: 
-  - Each tool has a `Triple_V_Config.json` in its GitHub repo
-  - Version comparison using SemVer
-  - Automatic update detection
-  - Progress dialog during downloads
+- **Smart Tool Management**
+  - One-click download and installation.
+  - Automatic version checking and updates.
+  - Organized categorization (Classical AUTOSAR, Adaptive AUTOSAR, Generic).
+- **Modern UI/UX**
+  - Dark theme with the fancy vehiclevo turquoise color.
+  - Animated sidebar navigation.
+  - Responsive design for all screen sizes.
+- **Seamless Updates**
+  - Self-updating mechanism for Triple V Application itself.
+  - Individual tool update mechanism.
+  - Version-aware executable naming (e.g., `TripleV_v4.0.0.exe`)
+- **Community-Driven**
+  - "Add to Vault" feature for tool submissions.
+  - Email-based contribution workflow.
+  - Quality assurance through review process.
 
-### 3. **User Interface**
-- **Animated Sidebar**: Smooth expand/collapse animation
-- **Tool Cards**: Each tool displays with:
-  - Tool name and description
-  - Download/Update button (context-aware)
-  - GitHub link button
-- **Dark Theme**: Modern dark UI with green accents
-- **Responsive Design**: Adapts to window resizing
 
-### 4. **Update Strategy**
-The update system works as follows:
+## Installation
 
-1. **Tool Configuration**: Each tool repository must contain:
-   ```
-   repository/
-   ├── Triple_V_Config.json    # Tool metadata
-   └── tool_name.zip          # Zipped executable
-   ```
+### System Requirements
 
-2. **Triple_V_Config.json Structure**:
-   ```json
-   {
-       "tool_name": "Tool Name",
-       "version": "1.0.0"
-   }
-   ```
+- **OS**: Windows 10/11 (64-bit).
+- **Storage**: 50MB for Triple V App exe + additional space for downloaded tools.
 
-3. **Version Management**:
-   - Uses semantic versioning (SemVer)
-   - Compares installed vs. repository versions
-   - Enables update button when newer version available
+### Quick Start
 
-## Installation & Setup
+1. **Download the latest release**
+   https://github.com/abdallahIssa1/Triple-V/releases/latest  
+2. **Extract and run**  
+   - Extract `TripleV_v4.0.0.zip`  
+   - Run `TripleV_v4.0.0.exe`  
+3. **First launch**
+   - Triple V will create necessary directories.
+   - Check for updates automatically.
+   - Ready to download tools!
 
-### Requirements
+## Usage Guide
+
+#### 1. Navigating the Interface
+
+- **Sidebar Navigation**: Click the hamburger menu to expand/collapse  
+- 🏠 Home: Main dashboard with core actions  
+- 🌱 Classical AUTOSAR: Traditional AUTOSAR tools  
+- 🐧 Adaptive AUTOSAR: Modern AUTOSAR tools  
+- 🧩 Generic Tools: Cross-domain utilities  
+
+#### 2. Downloading Tools
+
+1. Navigate to the desired category.
+2. Browse available tools.
+3. Click "Download" on any tool card.
+4. Monitor progress in the dialog.
+5. Find downloaded tools in `My Downloaded Tools` folder.
+
+#### 3. Updating Tools
+
+- Tools automatically check for updates on startup.
+- Orange "Update" button appears when updates are available.
+- Click to update with one click.
+
+#### 4. Checking for Triple V Updates
+
+1. Click "Check for Updates" on the home screen.
+2. If an update is available, follow the prompts.
+3. Triple V will update itself and restart.
+
+#### 5. Contributing Tools
+
+1. Click "Add to Vault" on the home screen.
+2. Fill in all required information:
+   - Check all required boxes.
+   - Select appropriate category.
+   - Enter your Vehiclevo email.
+   - Provide GitHub repository URL.
+3. Submit for review.
+
+## For Developers
+
+### ✍️ Adding Your Tool to Triple V
+
+#### Prerequisites
+
+1. GitHub repository for your tool.
+2. Working executable (`.exe`).
+3. Version management strategy.
+
+#### Step 1: Prepare Your Repository
+
+***Ensure YourTool.zip is in the main branch***
+
+```
+your-tool-repo/
+├── YourTool.zip # Contains your .exe file
+├── Triple_V_Config.json # Version metadata
+└── README.md # Tool documentation
+```
+
+#### Step 2: Create Triple_V_Config.json
+
+***Ensure Triple_V_Config.json is in the main branch***
+
+```json
+{
+  "version": "1.0.0",
+  "tool_name": "Your Tool Name",
+  "description": "Brief description of your tool"
+}
+```
+
+### 🔨 Building Triple V from Source
+
+#### Requirements
 ```bash
 pip install -r triple-v-requirements.txt
 ```
 
-### Running the Application
-```bash
-python launch_triple_v.py
+
+#### Project Structure
+```
+Triple-V/
+├── main.py              # Entry point
+├── config/              # Configuration files
+│   ├── settings.py      # Application settings
+│   └── tools_registry.json
+├── ui/                  # User interface
+│   ├── main_window.py
+│   ├── sidebar.py
+│   ├── views/
+│   ├── components/
+│   └── dialogs/
+├── utils/               # Utilities
+│   ├── download_manager.py
+│   └── update_manager.py
+└── assets/              # Resources
+    ├── triple_v_logo.png
+    ├── triple_v_logo.ico
+    └── triple_v_pulse.gif
+```
+#### Building Executable
+```
+pyinstaller --name="TripleV_v4.0.0" \
+            --onefile \
+            --windowed \
+            --icon=assets/icon.ico \
+            --add-data="assets;assets" \
+            --add-data="config;config" \
+            main.py
 ```
 
-## Adding New Tools
+## Tool Categories
 
-### For Developers Adding Tools:
+- 🌱 Classical AUTOSAR Tools
+- 🐧 Adaptive AUTOSAR Tools
+- 🧩 Generic Tools
 
-1. **Prepare Your Repository**:
-   - Create `Triple_V_Config.json` with tool info
-   - Create a zip file containing your executable
-   - Push both to your GitHub repository
+## Contributing
 
-2. **Update tools_registry.json**:
-   ```json
-   {
-       "name": "Your Tool Name",
-       "description": "Brief description",
-       "github_url": "https://github.com/username/repo",
-       "icon": "🔧"
-   }
-   ```
+We welcome contributions from all Vehiclevo engineers!
 
-3. **Categories**:
-   - `Classical AUTOSAR`: Classical-related tools
-   - `Adaptive AUTOSAR`: Adaptive-related tools
-   - `generic`: Generic tools
+### How to Contribute
 
-### For End Users:
+1. Develop your tool.
+2. Test thoroughly.
+3. Document usage.
+4. Submit via "Add to Vault".
 
-1. **Download Tools**:
-   - Navigate to tool category via sidebar
-   - Click "Download" button on desired tool
-   - Tool will be downloaded to `downloads/` directory
+### Contribution Guidelines
 
-2. **Update Tools**:
-   - Tools automatically check for updates on app start
-   - "Update" button enables when new version available
-   - Click to update to latest version
+- ✅ Tools must be stable and tested.
+- ✅ Include comprehensive documentation.
+- ✅ Follow semantic versioning (SemVer).
+- ✅ Ensure Windows compatibility.
+- ✅ No malicious code.
 
-3. **Check for Triple V Updates**:
-   - Click "Check for Updates" button on main screen
-   - Downloads latest Triple V version if available
+### Review Process
 
-## Key Components
-
-### Settings (config/settings.py)
-- Centralized configuration
-- Color scheme definitions
-- Path management
-- Default values
-
-### Download Manager (utils/download_manager.py)
-- Handles tool downloads from GitHub
-- Version comparison logic
-- Progress tracking
-- Local tool registry management
-
-### Tool Card (ui/components/tool_card.py)
-- Self-contained tool widget
-- Automatic status checking
-- Download/Update state management
-- GitHub link integration
-
-## Customization
-
-### Changing Colors
-Edit color values in `config/settings.py`:
-```python
-PRIMARY_COLOR = "#00ff88"      # Green accent
-SECONDARY_COLOR = "#00cc66"    # Darker green
-BACKGROUND_COLOR = "#1a1a1a"   # Dark background
-SURFACE_COLOR = "#2d2d2d"      # Card backgrounds
-TEXT_COLOR = "#ffffff"         # White text
-```
-
-### Adding Tool Categories
-1. Add new category to `tools_registry.json`
-2. Create new view in `ui/views/`
-3. Add navigation item in `ui/sidebar.py`
-4. Connect in `ui/main_window.py`
-
-## API Integration
-
-The app expects tools to follow this GitHub structure:
-- Latest release with zip asset, OR
-- Direct file at `repo/main/tool_name.zip`
-- `Triple_V_Config.json` in main branch.
-
-## Future Enhancements
-
-1. **Tool Search**: Add search functionality.
-2. **Tool Ratings**: User ratings and reviews.
-
-## Troubleshooting
-
-### Common Issues:
-
-1. **Tool won't download**:
-   - Check GitHub URL is correct.
-   - Ensure `Triple_V_Config.json` exists in the repo main path.
-   - Verify zip file is accessible in the repo main path.
-
-2. **Update not detected**:
-   - Check version format (must be SemVer).
-   - Ensure version in repo is higher.
-   - Try restarting the application.
-
-3. **UI scaling issues**:
-   - Application supports high DPI displays
-   - Adjust system DPI settings if needed
-
-## License
-
-© 2024 Triple V Platform. All rights reserved.
+1. Submission received via email.
+2. Technical and stability review by the Reviewers (mainly abdallah.issa and ahmed.Dawoud).
+3. Integration into tools registry.
 
 ## Support
 
-For issues or questions:
-- Create an issue on GitHub
-- Contact abdallah.issa@vehiclevo.com
-- Check documentation at (TODO:will host the documentation soon somewhere)
+### Getting Help
+- Documentation: Check this README and usage PDF.
+- Issues: Contact the development team.
+- Email: abdallah.issa@vehiclevo.com -> (TODO: to be replaced by triplev@vehiclevo.com or something like).
+
+## License
+Copyright © 2024 Vehiclevo. All rights reserved.
+
+This software is proprietary to Vehiclevo and for internal use only.
+
+
+<div align="center">
+  <b>Triple V</b>
+  <br>
+  Made with ❤️ to Vehiclevo
+</div>
