@@ -16,8 +16,9 @@ class AddVaultDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add to Vault")
-        # Keep a fixed size, allowing scrollbars to appear if needed
-        self.setFixedSize(550, 600)
+        # Make dialog responsive to screen size
+        self.setMinimumSize(550, 500)
+        self.resize(550, 650)
         self.setModal(True)
 
         # Email and URL validation regex
@@ -25,6 +26,22 @@ class AddVaultDialog(QDialog):
         self.url_regex = r'^(https?:\/\/)?github\.com\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?$'
 
         self.init_ui()
+
+        # Adjust size based on screen
+        self.adjust_to_screen()
+
+    def adjust_to_screen(self):
+        """Adjust dialog size based on available screen space"""
+        from PyQt5.QtWidgets import QDesktopWidget
+        screen = QDesktopWidget().screenGeometry()
+
+        # If screen height is less than 800px, make dialog smaller
+        if screen.height() < 800:
+            self.resize(550, min(screen.height() - 100, 600))
+        else:
+            self.resize(550, 650)
+
+
 
     def init_ui(self):
         # 1) Top‐level layout for the dialog itself
@@ -34,6 +51,24 @@ class AddVaultDialog(QDialog):
         # 2) Create a QScrollArea (vertical scrollbar enabled by default)
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)  # Let the content widget expand to the width
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)  # Always show scrollbar
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # No horizontal scroll
+        scroll.setStyleSheet("""
+        QScrollArea {
+            background-color: transparent;
+            border: none;
+        }
+        QScrollBar:vertical {
+            background-color: #2d2d2d;
+            width: 10px;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:vertical {
+            background-color: #00ff88;
+            border-radius: 5px;
+            min-height: 20px;
+        }
+    """)
         main_layout.addWidget(scroll)
 
         # 3) Create a separate QWidget to hold all form content
@@ -201,6 +236,7 @@ class AddVaultDialog(QDialog):
 
         # ----- BUTTONS -----
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 20, 0, 0)  # Add top margin
 
         self.submit_btn = QPushButton("Submit to Vault")
         self.submit_btn.setFixedHeight(45)
