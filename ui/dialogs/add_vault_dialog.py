@@ -11,6 +11,7 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import re
+import keyring
 
 class AddVaultDialog(QDialog):
     def __init__(self, parent=None):
@@ -350,10 +351,20 @@ class AddVaultDialog(QDialog):
         """Send email with vault submission data."""
         try:
             # Email configuration (update with real SMTP settings)
-            smtp_server = "smtp.vehiclevo.com"
+            smtp_server = "smtp.gmail.com"
             smtp_port = 587
-            sender_email = "abdallah.issa@vehiclevo.com"
-            sender_password = "!G`8NoV:cvKoFv3^wia"
+            sender_email = "abdallahissa9800@gmail.com"
+            
+            # sender_password = ""
+            # I'll use library called Keyring here to not show my password in the code
+            # -> needs additional tweaks in the future to be sent from my veh email (TODO: contact IT guys)
+            
+            # Get password from system keyring
+            sender_password = keyring.get_password("Triple_V", sender_email)
+            print(f"sender password: {sender_password}")
+            if not sender_password:
+                print("Email password not found in keyring")
+                return False
             recipient_email = "abdallah.issa@vehiclevo.com"
 
             msg = MIMEMultipart()
@@ -372,8 +383,8 @@ class AddVaultDialog(QDialog):
             GitHub Repository: {form_data['github_url']}
             Submission Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-            Action Required:
-            ---------------
+            Action Required from the Reviewers:
+            ----------------------------------
             1. Verify the tool meets quality standards.
             2. Add to tools_registry.json if approved.
 
