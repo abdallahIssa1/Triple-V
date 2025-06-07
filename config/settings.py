@@ -96,8 +96,8 @@ class Settings:
     # ------------------------
     # Colors (Hex Codes)
     # ------------------------
-    PRIMARY_COLOR    = "#00ff88"
-    SECONDARY_COLOR  = "#00cc66"
+    PRIMARY_COLOR    = "#40E0D0"
+    SECONDARY_COLOR  = "#30C0B0"
     BACKGROUND_COLOR = "#1a1a1a"
     SURFACE_COLOR    = "#2d2d2d"
     TEXT_COLOR       = "#ffffff"

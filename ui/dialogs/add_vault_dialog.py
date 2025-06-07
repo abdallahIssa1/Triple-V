@@ -65,7 +65,7 @@ class AddVaultDialog(QDialog):
             border-radius: 5px;
         }
         QScrollBar::handle:vertical {
-            background-color: #00ff88;
+            background-color: #40E0D0;
             border-radius: 5px;
             min-height: 20px;
         }
