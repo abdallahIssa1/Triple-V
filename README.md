@@ -12,8 +12,8 @@
 
 ## 📋 Table of Contents
 
-* [Overview](#Overview)
-* [Features](#Features)
+* [Overview](#overview)
+* [Features](#features)
 * [Installation](#installation)
 * [Usage Guide](#usage-guide)
 * [For Developers](#for-developers)
