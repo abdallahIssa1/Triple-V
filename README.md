@@ -3,7 +3,7 @@
 <div align="center">
   <img src="assets/triple_v_logo.png" alt="Triple V Logo" width="200"/>
   
-  [![Version](https://img.shields.io/badge/version-4.0.0-green.svg)](https://github.com/abdallahIssa1/Triple-V/releases)
+  [![Version](https://img.shields.io/badge/version-4.0.0-green.svg)](https://github.com/abdallahIssa1/Triple-V/releases/latest)
   [![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
   [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
   
@@ -228,7 +228,9 @@ We welcome contributions from all Vehiclevo engineers!
 
 ## 📜 License
 Copyright © 2024 Vehiclevo. All rights reserved.
+
 This software is proprietary to Vehiclevo and for internal use only.
+
 
 <div align="center">
   <b>Triple V</b>
