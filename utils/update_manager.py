@@ -1,6 +1,6 @@
-# update_manager.py
-
 import os
+import sys
+import subprocess
 import json
 import tempfile
 import shutil
@@ -21,88 +21,56 @@ from config.settings import Settings
 
 class UpdateManager:
     def __init__(self):
-        # We’ll load the up‐to‐date version from disk each time we check for updates.
-        self.current_version = None
+        # Current version extracted from filename
+        self.current_version = Settings.APP_VERSION
+        
+        # GitHub API URL
+        self.github_api_url = Settings.GITHUB_API_URL
 
-        # Remote JSON that holds { "version": "X.Y.Z", "download_url": "<raw URL to TripleV.zip>" }
-        self.update_config_url = (
-            "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/config/Triple_V_Updater.json"
-        )
-
-        # Fallback raw‐GitHub ZIP URL in case update_data["download_url"] is not a .zip
-        self.fallback_zip_url = (
-            "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/dist/TripleV.zip"
-        )
-
-    def _get_local_version(self) -> str:
-        """
-        Read the current version from config/Triple_V_Config.json on disk.
-        Returns a string like "1.0.0", or Settings.APP_VERSION if anything goes wrong.
-        """
-        try:
-            cfg_path = Settings.CONFIG_DIR / "Triple_V_Config.json"
-            print(f"[UpdateManager] Checking local version from: {cfg_path}")
-            
-            # If the file doesn't exist, create it with the default APP_VERSION
-            if not cfg_path.exists():
-                print(f"[UpdateManager] {cfg_path} does not exist. Creating with APP_VERSION={Settings.APP_VERSION}")
-                Settings.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-                with open(cfg_path, "w", encoding="utf-8") as cf_init:
-                    json.dump({"version": Settings.APP_VERSION}, cf_init, indent=4)
-                return Settings.APP_VERSION
-
-            with open(cfg_path, "r", encoding="utf-8") as cf:
-                cfg = json.load(cf)
-                local_ver = cfg.get("version", Settings.APP_VERSION)
-                print(f"[UpdateManager] Loaded local version = {local_ver}")
-                return local_ver
-
-        except Exception as e:
-            print(f"[UpdateManager] Error reading local version: {e}")
-            return Settings.APP_VERSION
 
     def check_app_update(self):
         """
-        Fetch Triple_V_Updater.json and compare remote version to local.
-        Returns a tuple: (is_update_available: bool, latest_version: str, update_data: dict).
+        Query GitHub Releases API and compare versions
+        Returns: (is_update_available: bool, latest_version: str, release_data: dict)
         """
-        # Always reload the local version from disk before comparing
-        self.current_version = self._get_local_version()
+        
 
         try:
-            print(f"[UpdateManager] Requesting remote JSON from: {self.update_config_url}")
-            response = requests.get(self.update_config_url, timeout=10)
+            print(f"[UpdateManager] Current version: {self.current_version}")
+            print(f"[UpdateManager] Checking GitHub releases: {self.github_api_url}")
+            response = requests.get(self.github_api_url, timeout=10)
             response.raise_for_status()
-            update_data = response.json()
+            release_data = response.json()
+            # Extract version from tag_name (e.g., "v2.0.0" -> "2.0.0")
+            tag_name = release_data.get("tag_name", "")
+            latest_version = tag_name.lstrip("v")
+            
+            print(f"[UpdateManager] Latest release version: {latest_version}")
 
-            latest_version = update_data.get("version", "0.0.0")
-            print(f"[UpdateManager] Fetched remote version = {latest_version}")
 
             if version.parse(latest_version) > version.parse(self.current_version):
-                print(f"[UpdateManager] Update available: {self.current_version} → {latest_version}")
-                return True, latest_version, update_data
+                print(f"[UpdateManager] Update available: {self.current_version} -> {latest_version}")
+                return True, latest_version, release_data
             else:
-                print(f"[UpdateManager] No update needed. Local={self.current_version}, Remote={latest_version}")
-
+                print(f"[UpdateManager] Already up to date")
+                
         except Exception as e:
-            print(f"[UpdateManager] Error while checking for updates: {e}")
+            print(f"[UpdateManager] Error checking for updates: {e}")
 
         return False, None, None
 
-    def show_update_dialog(self, parent_widget, new_version, update_data=None):
+    def show_update_dialog(self, parent_widget, new_version, release_data=None):
         """
-        1) Ask user if they want to download TripleV.zip.
-        2) If yes, download the ZIP with a progress dialog.
-        3) Extract TripleV.exe from the ZIP and replace the old EXE.
-        4) Update Triple_V_Config.json with new version.
+        Show update dialog and handle the update process
         """
         reply = QMessageBox.question(
             parent_widget,
             "Update Available",
             (
-                f"Triple V version {new_version} is available!\n"
-                f"Current version: {self.current_version}\n\n"
-                "Download and install the update now?"
+                f"Triple V v{new_version} is available!\n\n"
+                f"Current version: v{self.current_version}\n"
+                f"New version: v{new_version}\n\n"
+                "Download and install now?"
             ),
             QMessageBox.Yes | QMessageBox.No
         )
@@ -110,161 +78,137 @@ class UpdateManager:
             print("[UpdateManager] User chose not to update.")
             return
 
-        # Determine download URL (expecting a .zip containing TripleV.exe)
+        # Find the ZIP asset in the release
         download_url = None
-        if update_data and isinstance(update_data.get("download_url"), str):
-            download_url = update_data["download_url"]
-
-        # If the provided URL does not end with ".zip", use the fallback
-        if not download_url or not download_url.lower().endswith(".zip"):
-            print("[UpdateManager] Using fallback ZIP URL:", self.fallback_zip_url)
-            download_url = self.fallback_zip_url
+        if release_data and "assets" in release_data:
+            for asset in release_data["assets"]:
+                if asset["name"].endswith(".zip") and "TripleV" in asset["name"]:
+                    download_url = asset["browser_download_url"]
+                    break
+        
+        if not download_url:
+            QMessageBox.warning(parent_widget, "Error", 
+                              "Could not find download URL for the update.")
+            return
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            print(f"[UpdateManager] Starting download of ZIP from: {download_url}")
-            success = self._download_extract_replace(parent_widget, download_url)
+            success = self._download_and_install_update(parent_widget, download_url, new_version)
 
             if success:
-                # 1) Persist the new version on disk
-                cfg_path = Settings.CONFIG_DIR / "Triple_V_Config.json"
-                print(f"[UpdateManager] Writing new version {new_version} to: {cfg_path}")
-
-                try:
-                    # If config directory or file is missing, recreate it
-                    if not cfg_path.exists():
-                        Settings.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-                        with open(cfg_path, "w", encoding="utf-8") as cf_init:
-                            json.dump({"version": Settings.APP_VERSION}, cf_init, indent=4)
-
-                    with open(cfg_path, "r+", encoding="utf-8") as cf:
-                        cfg = json.load(cf)
-                        cfg["version"] = new_version
-                        cf.seek(0)
-                        json.dump(cfg, cf, indent=4)
-                        cf.truncate()
-
-                except Exception as e:
-                    print(f"[UpdateManager] Failed to update Triple_V_Config.json: {e}")
-
-                # 2) Also update our in‐memory current_version
-                self.current_version = new_version
-                print(f"[UpdateManager] In-memory version updated to: {self.current_version}")
-
                 QMessageBox.information(
                     parent_widget,
                     "Update Complete",
-                    f"Triple V has been updated to version {new_version}!"
+                    f"Triple V has been updated to v{new_version}!\n\n"
+                    "Please restart the application to apply changes."
                 )
             else:
-                print("[UpdateManager] _download_extract_replace returned False.")
                 QMessageBox.warning(
                     parent_widget,
                     "Update Failed",
-                    "Download or installation failed. Please try again."
+                    "Failed to install the update. Please try again."
                 )
         finally:
             QApplication.restoreOverrideCursor()
 
-    def _download_extract_replace(self, parent, url):
+    def _download_and_install_update(self, parent, url, new_version):
         """
-        Download a ZIP containing TripleV.exe, show progress, then extract and replace.
-        Returns True on success, False otherwise.
+        Download ZIP, extract new exe, rename old exe, and install new one
         """
-        dist_dir = Settings.BASE_DIR / "dist"
-        old_exe_path = dist_dir / "TripleV.exe"
-
+        
         try:
-            # 1) Stream-download the ZIP
-            with requests.get(url, stream=True, timeout=15) as response:
-                response.raise_for_status()
-                total_size = int(response.headers.get("Content-Length", 0))
-
-                progress = QProgressDialog(
-                    "Downloading update...",
-                    "Cancel",
-                    0,
-                    total_size,
-                    parent
-                )
-                progress.setWindowTitle("Updating Triple V")
-                progress.setWindowModality(Qt.WindowModal)
-                progress.setMinimumDuration(500)
-                progress.setValue(0)
-
-                # Save ZIP to a temporary file
-                fd, temp_zip_path = tempfile.mkstemp(suffix=".zip")
-                os.close(fd)
-                bytes_downloaded = 0
-
-                with open(temp_zip_path, "wb") as tmp_zip:
-                    chunk_size = 8192
-                    for chunk in response.iter_content(chunk_size=chunk_size):
-                        if chunk:
-                            tmp_zip.write(chunk)
-                            bytes_downloaded += len(chunk)
-                            progress.setValue(bytes_downloaded)
-                            QApplication.processEvents()
-                            if progress.wasCanceled():
-                                tmp_zip.close()
-                                os.remove(temp_zip_path)
-                                return False
-
-                progress.setValue(total_size)
-                progress.close()
-
-            # 2) Open the ZIP and extract TripleV.exe to a temp location
-            with zipfile.ZipFile(temp_zip_path, "r") as z:
-                members = z.namelist()
-                if "TripleV.exe" not in members:
-                    print(f"[UpdateManager] ZIP does not contain TripleV.exe; contents: {members}")
-                    os.remove(temp_zip_path)
+            # 1. Download the ZIP file
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            total_size = int(response.headers.get("content-length", 0))
+            
+            progress = QProgressDialog("Downloading update...", "Cancel", 0, total_size, parent)
+            progress.setWindowModality(Qt.WindowModal)
+            progress.setMinimumDuration(0)
+            
+            # Download to temp file
+            temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+            downloaded = 0
+            
+            for chunk in response.iter_content(chunk_size=8192):
+                if progress.wasCanceled():
+                    temp_zip.close()
+                    os.unlink(temp_zip.name)
                     return False
-
-                # Extract to a new temporary file
-                fd2, temp_exe_path = tempfile.mkstemp(suffix=".exe")
-                os.close(fd2)
-                with z.open("TripleV.exe") as zipped_exe, open(temp_exe_path, "wb") as out_exe:
-                    shutil.copyfileobj(zipped_exe, out_exe)
-
-            # 3) Replace the old EXE
-            if old_exe_path.exists():
-                try:
-                    old_exe_path.unlink()
-                except Exception as e:
-                    print(f"[UpdateManager] Could not delete old EXE: {e}")
-                    # Proceed anyway—moving new EXE may overwrite or fail
-
-            # Ensure dist directory exists
-            dist_dir.mkdir(parents=True, exist_ok=True)
-            shutil.move(temp_exe_path, str(old_exe_path))
-            print(f"[UpdateManager] Successfully moved new TripleV.exe to: {old_exe_path}")
-
-            # 4) Clean up the downloaded ZIP
-            os.remove(temp_zip_path)
-
+                    
+                if chunk:
+                    temp_zip.write(chunk)
+                    downloaded += len(chunk)
+                    progress.setValue(downloaded)
+                    
+            temp_zip.close()
+            progress.close()
+            
+            # 2. Extract the new executable
+            with zipfile.ZipFile(temp_zip.name, 'r') as zip_ref:
+                # Find the exe file in the zip
+                exe_name = None
+                for name in zip_ref.namelist():
+                    if name.endswith('.exe') and 'TripleV' in name:
+                        exe_name = name
+                        break
+                        
+                if not exe_name:
+                    raise Exception("No TripleV executable found in update package")
+                
+                # Extract to temp location
+                temp_dir = tempfile.mkdtemp()
+                zip_ref.extract(exe_name, temp_dir)
+                new_exe_path = Path(temp_dir) / exe_name
+            
+            # 3. Rename current executable
+            if getattr(sys, 'frozen', False):
+                current_exe = Path(sys.executable)
+            else:
+                # Running as script, look for exe in dist
+                dist_dir = Settings.BASE_DIR / "dist"
+                current_exe = None
+                for exe_file in dist_dir.glob("TripleV*.exe"):
+                    current_exe = exe_file
+                    break
+            
+            if current_exe and current_exe.exists():
+                # Rename old exe to include its version
+                old_version = self.current_version
+                backup_name = f"TripleV_v{old_version}_old_{old_version}.exe"
+                backup_path = current_exe.parent / backup_name
+                
+                # Use a batch script to rename the running exe
+                if getattr(sys, 'frozen', False):
+                    batch_content = f"""
+@echo off
+timeout /t 2 /nobreak > nul
+move /y "{current_exe}" "{backup_path}"
+move /y "{new_exe_path}" "{current_exe.parent / f'TripleV_v{new_version}.exe'}"
+del "%~f0"
+"""
+                    batch_path = current_exe.parent / "update.bat"
+                    with open(batch_path, 'w') as f:
+                        f.write(batch_content)
+                    
+                    # Execute batch script
+                    subprocess.Popen(str(batch_path), shell=True)
+                else:
+                    # Not frozen, just move files directly
+                    if current_exe.exists():
+                        current_exe.rename(backup_path)
+                    new_exe_path.rename(current_exe.parent / f"TripleV_v{new_version}.exe")
+            
+            # Clean up
+            os.unlink(temp_zip.name)
+            
             return True
 
-        except zipfile.BadZipFile:
-            print("[UpdateManager] Downloaded file is not a valid ZIP.")
-            try:
-                if os.path.exists(temp_zip_path):
-                    os.remove(temp_zip_path)
-            except:
-                pass
-            return False
-
         except Exception as e:
-            print(f"[UpdateManager] Download/extract/replace failed: {e}")
-            # Clean up temp files if they exist
+            print(f"[UpdateManager] Update failed: {e}")
             try:
-                if os.path.exists(temp_zip_path):
-                    os.remove(temp_zip_path)
-            except:
+                if 'temp_zip' in locals():
+                    os.unlink(temp_zip.name)
+            except Exception:
                 pass
-            try:
-                if os.path.exists(temp_exe_path):
-                    os.remove(temp_exe_path)
-            except:
-                pass
-            return False
+                return False

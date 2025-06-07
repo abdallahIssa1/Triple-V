@@ -60,40 +60,32 @@ class DownloadManager:
         return github_url
         
     def fetch_tool_config(self, github_url):
-        """Fetch Triple_V_Config.json from GitHub repo"""
+        """Fetch tool info from GitHub releases API"""
         owner, repo = self.parse_github_url(github_url)
         if not owner or not repo:
             print(f"Could not parse GitHub URL: {github_url}")
             return None
         
-        # Try multiple possible locations for the config file
-        config_urls = [
-            f"https://raw.githubusercontent.com/{owner}/{repo}/main/Triple_V_Config.json",
-            f"https://raw.githubusercontent.com/{owner}/{repo}/master/Triple_V_Config.json",
-            f"https://github.com/{owner}/{repo}/raw/main/Triple_V_Config.json",
-            f"https://github.com/{owner}/{repo}/blob/main/Triple_V_Config.json?raw=true"
-        ]
+        # Use GitHub API to get latest release
+        try:
+            api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+            print(f"Fetching tool info from: {api_url}")
+            response = requests.get(api_url, timeout=10)
+            
+            if response.status_code == 200:
+                release_data = response.json()
+                # Extract version from tag_name
+                version = release_data.get("tag_name", "v1.0.0").lstrip("v")
+                return {
+                    "version": version,
+                    "name": release_data.get("name", repo),
+                    "description": release_data.get("body", "")
+                }
+        except Exception as e:
+            print(f"Error fetching tool info: {e}")
         
-        for config_url in config_urls:
-            try:
-                print(f"Trying to fetch config from: {config_url}")
-                response = requests.get(config_url, timeout=10)
-                if response.status_code == 200:
-                    # Try to parse as JSON
-                    try:
-                        return response.json()
-                    except json.JSONDecodeError:
-                        # If it's HTML (GitHub page), skip to next URL
-                        if "<!DOCTYPE html>" in response.text:
-                            continue
-                        print(f"Invalid JSON from {config_url}")
-            except requests.exceptions.RequestException as e:
-                print(f"Request error for {config_url}: {e}")
-            except Exception as e:
-                print(f"Error fetching config from {config_url}: {e}")
-        
-        print(f"Could not fetch config from any URL for {owner}/{repo}")
-        return None
+        # Fallback to default version
+        return {"version": "1.0.0", "name": repo}
         
     def get_download_url(self, github_url):
         """Get the download URL for the zipped tool"""
@@ -147,16 +139,9 @@ class DownloadManager:
         config = self.fetch_tool_config(github_url)
         if not config:
             QMessageBox.warning(parent_widget, "Error", 
-                              "Could not fetch tool configuration from GitHub.\n"
-                              "Please ensure Triple_V_Config.json exists in the repository.")
+                              "Could not fetch tool information from GitHub.")
             return False
-        
-        # Validate config has required fields
-        if "version" not in config:
-            QMessageBox.warning(parent_widget, "Error", 
-                              "Invalid Triple_V_Config.json: missing 'version' field.")
-            return False
-            
+          
         # Get download URL
         download_url = self.get_download_url(github_url)
         if not download_url:
@@ -205,10 +190,6 @@ class DownloadManager:
             except zipfile.BadZipFile:
                 raise Exception("Downloaded file is not a valid zip archive")
                 
-            # Save config file
-            config_path = tool_dir / "Triple_V_Config.json"
-            with open(config_path, 'w') as f:
-                json.dump(config, f, indent=4)
                 
             # Update installed tools registry
             self.installed_tools[tool_name] = {

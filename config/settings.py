@@ -2,6 +2,8 @@
 
 import os
 import json
+import sys
+import re
 from pathlib import Path
 
 class Settings:
@@ -27,32 +29,38 @@ class Settings:
     @staticmethod
     def _load_local_version() -> str:
         """
-        Reads the current version from config/Triple_V_Config.json on disk.
-        If the file is missing, creates it with a default "1.0.0" and returns that.
-        Returns:
-            A version string, e.g. "1.0.0". Falls back to "1.0.0" on any error.
+        Extract version from executable filename (e.g., TripleV_v2.0.0.exe -> 2.0.0)
+        Falls back to "1.0.0" if pattern not found
         """
-        # Calculate paths without referencing Settings class
-        base_dir = Path(__file__).resolve().parent.parent
-        config_dir = base_dir / "config"
-        cfg_path = config_dir / "Triple_V_Updater.json"
-        default_version = "1.0.0"
+        default_version = "4.0.0"
 
         try:
-            # If the config file doesn't exist, create it with the default version.
-            if not cfg_path.exists():
-                config_dir.mkdir(parents=True, exist_ok=True)
-                with open(cfg_path, "w", encoding="utf-8") as cf_init:
-                    json.dump({"version": default_version}, cf_init, indent=4)
+            # Determine path to the running executable or script
+            if getattr(sys, "frozen", False):
+                # Running as a compiled executable
+                exe_path = sys.executable
+            else:
+                # Running as a script; look for TripleV_v*.exe in dist folder
+                dist_dir = Path(__file__).resolve().parent.parent / "dist"
+                exe_list = list(dist_dir.glob("TripleV_v*.exe"))
+                if exe_list:
+                    exe_path = exe_list[0]
+                else:
+                    return default_version
+
+            # Extract version from filename using regex
+            filename = Path(exe_path).stem
+            match = re.search(r"TripleV_v(\d+\.\d+\.\d+)", filename)
+            if match:
+                version_str = match.group(1)
+                print(f"Extracted version {version_str} from {filename}")
+                return version_str
+            else:
+                print(f"Could not extract version from {filename}")
                 return default_version
 
-            # Otherwise read whatever is stored in the JSON
-            with open(cfg_path, "r", encoding="utf-8") as cf:
-                data = json.load(cf)
-                return data.get("version", default_version)
-
         except Exception as e:
-            print(f"Error loading version: {e}")
+            print(f"Error extracting version from filename: {e}")
             return default_version
 
     # ------------------------
@@ -66,6 +74,7 @@ class Settings:
     # GitHub / Update Settings
     # ------------------------
     GITHUB_BASE_URL = "https://api.github.com/repos"
+    GITHUB_API_URL = "https://api.github.com/repos/abdallahIssa1/Triple-V/releases/latest"
     # This URL is used if no valid download_url is provided by the updater manifest.
     UPDATE_CHECK_URL = "https://raw.githubusercontent.com/abdallahIssa1/Triple-V/main/dist/TripleV.zip"
 
@@ -125,16 +134,3 @@ class Settings:
                 json.dump(config_data, f, indent=4, ensure_ascii=False)
         except Exception as e:
             print(f"Error saving tools config: {e}")
-
-    @classmethod
-    def update_app_version(cls, new_version):
-        """
-        Update the application version in the local config file.
-        """
-        cfg_path = cls.CONFIG_DIR / "Triple_V_Config.json"
-        try:
-            with open(cfg_path, "w", encoding="utf-8") as f:
-                json.dump({"version": new_version}, f, indent=4)
-            cls.APP_VERSION = new_version
-        except Exception as e:
-            print(f"Error updating version: {e}")

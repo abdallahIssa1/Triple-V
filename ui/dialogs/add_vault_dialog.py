@@ -338,9 +338,8 @@ class AddVaultDialog(QDialog):
 
             Action Required:
             ---------------
-            1. Review the GitHub repository for Triple_V_Config.json
-            2. Verify the tool meets quality standards.
-            3. Add to tools_registry.json if approved.
+            1. Verify the tool meets quality standards.
+            2. Add to tools_registry.json if approved.
 
             --
             Triple V Platform
