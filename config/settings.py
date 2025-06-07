@@ -1,5 +1,3 @@
-# settings.py
-
 import os
 import json
 import sys
@@ -12,7 +10,17 @@ class Settings:
     # ------------------------
     BASE_DIR = Path(__file__).resolve().parent.parent
     CONFIG_DIR = BASE_DIR / "config"
-    DOWNLOADS_DIR = BASE_DIR / "downloads"
+    
+    # Get the directory where the exe is located
+    if getattr(sys, 'frozen', False):
+        # Running as exe
+        EXE_DIR = Path(sys.executable).parent
+    else:
+        # Running as script
+        EXE_DIR = BASE_DIR / "dist"
+
+    DOWNLOADS_DIR = EXE_DIR / "My Downloaded Tools"
+
     TOOLS_CONFIG_FILE = CONFIG_DIR / "tools_registry.json"
     ASSETS_DIR = BASE_DIR / "assets"
     LOGO_PATH = ASSETS_DIR / "triple_v_logo.png"
@@ -39,28 +47,28 @@ class Settings:
             if getattr(sys, "frozen", False):
                 # Running as a compiled executable
                 exe_path = sys.executable
+                filename = Path(exe_path).name  # Get just the filename
             else:
                 # Running as a script; look for TripleV_v*.exe in dist folder
-                dist_dir = Path(__file__).resolve().parent.parent / "dist"
-                exe_list = list(dist_dir.glob("TripleV_v*.exe"))
-                if exe_list:
-                    exe_path = exe_list[0]
+                dist_path = Path(__file__).resolve().parent.parent / "dist"
+                exe_files  = list(dist_path.glob("TripleV_v*.exe"))
+                if exe_files:
+                    filename = exe_files[0].name
                 else:
                     return default_version
 
             # Extract version from filename using regex
-            filename = Path(exe_path).stem
-            match = re.search(r"TripleV_v(\d+\.\d+\.\d+)", filename)
+            match = re.search(r'TripleV_v(\d+\.\d+\.\d+)', filename.replace('.exe', ''))
             if match:
                 version_str = match.group(1)
-                print(f"Extracted version {version_str} from {filename}")
+                print(f"[Settings] Extracted version {version} from {filename}")
                 return version_str
             else:
-                print(f"Could not extract version from {filename}")
+                print(f"[Settings] Could not extract version from {filename}, using default")
                 return default_version
 
         except Exception as e:
-            print(f"Error extracting version from filename: {e}")
+            print(f"[Settings] Error extracting version: {e}")
             return default_version
 
     # ------------------------
