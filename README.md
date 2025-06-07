@@ -12,15 +12,15 @@
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage Guide](#usage-guide)
-- [For Developers](#for-developers)
-- [Tool Categories](#tool-categories)
-- [Contributing](#contributing)
-- [Support](#support)
-- [License](#License)
+* [Overview](#overview)
+* [Features](#features)
+* [Installation](#installation)
+* [Usage Guide](#usage-guide)
+* [For Developers](#for-developers)
+* [Tool Categories](#tool-categories)
+* [Contributing](#contributing)
+* [Support](#support)
+* [License](#License)
 
 ## 🎯 Overview
 
