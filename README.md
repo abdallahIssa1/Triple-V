@@ -22,7 +22,7 @@
 * [Support](#support)
 * [License](#License)
 
-## Overview 🎯
+## Overview
 
 **Triple V (Vehiclevo Versatile Vault)** Vehiclevo Versatile Vault is a comprehensive tool management platform designed to be a unified Hub for all Vehiclevo tools.
 
@@ -32,7 +32,7 @@
 - **Versatile**: Supporting tools across the entire automotive development spectrum.
 - **Vault**: A versioned repository where every tool is documented and easily discoverable.
 
-## ✨ Features
+## Features
 
 ### 🔧 Core Features
 
@@ -54,7 +54,7 @@
   - Quality assurance through review process.
 
 
-## 💾 Installation
+## Installation
 
 ### System Requirements
 
@@ -73,9 +73,7 @@
    - Check for updates automatically.
    - Ready to download tools!
 
-## 📖 Usage Guide
-
-## 🧑‍🤝‍🧑 For End Users
+## Usage Guide
 
 #### 1. Navigating the Interface
 
@@ -115,7 +113,7 @@
    - Provide GitHub repository URL.
 3. Submit for review.
 
-## 👩‍💻 For Developers
+## For Developers
 
 ### ✍️ Adding Your Tool to Triple V
 
@@ -188,13 +186,13 @@ pyinstaller --name="TripleV_v4.0.0" \
             main.py
 ```
 
-## 📚 Tool Categories
+## Tool Categories
 
 - 🌱 Classical AUTOSAR Tools
 - 🐧 Adaptive AUTOSAR Tools
 - 🧩 Generic Tools
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions from all Vehiclevo engineers!
 
@@ -219,14 +217,14 @@ We welcome contributions from all Vehiclevo engineers!
 2. Technical and stability review by the Reviewers (mainly abdallah.issa and ahmed.Dawoud).
 3. Integration into tools registry.
 
-## 🆘 Support
+## Support
 
 ### Getting Help
 - Documentation: Check this README and usage PDF.
 - Issues: Contact the development team.
 - Email: abdallah.issa@vehiclevo.com -> (TODO: to be replaced by triplev@vehiclevo.com or something like).
 
-## 📜 License
+## License
 Copyright © 2024 Vehiclevo. All rights reserved.
 
 This software is proprietary to Vehiclevo and for internal use only.
