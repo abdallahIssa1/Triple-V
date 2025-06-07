@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from PyQt5.QtGui import QFont, QPainter, QColor
 from config.settings import Settings
 from utils.download_manager import DownloadManager
@@ -14,8 +14,9 @@ class ToolCard(QFrame):
         self.icon = icon
         self.download_manager = DownloadManager()
         self.init_ui()
-        self.check_installed_status()
-        
+        # Delay the check to ensure UI is ready
+        QTimer.singleShot(100, self.check_installed_status)
+
     def init_ui(self):
         self.setFixedSize(300, 250)  # Increased height
         self.setStyleSheet(f"""

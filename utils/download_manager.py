@@ -60,32 +60,41 @@ class DownloadManager:
         return github_url
         
     def fetch_tool_config(self, github_url):
-        """Fetch tool info from GitHub releases API"""
+        """Fetch Triple_V_Config.json from GitHub repo (for tools only)"""
         owner, repo = self.parse_github_url(github_url)
         if not owner or not repo:
-            print(f"Could not parse GitHub URL: {github_url}")
+            print(f"[DownloadManager] Could not parse GitHub URL: {github_url}")
             return None
         
-        # Use GitHub API to get latest release
-        try:
-            api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
-            print(f"Fetching tool info from: {api_url}")
-            response = requests.get(api_url, timeout=10)
-            
-            if response.status_code == 200:
-                release_data = response.json()
-                # Extract version from tag_name
-                version = release_data.get("tag_name", "v1.0.0").lstrip("v")
-                return {
-                    "version": version,
-                    "name": release_data.get("name", repo),
-                    "description": release_data.get("body", "")
-                }
-        except Exception as e:
-            print(f"Error fetching tool info: {e}")
+        # Try multiple possible locations for the config file
+        config_urls = [
+            f"https://raw.githubusercontent.com/{owner}/{repo}/main/Triple_V_Config.json",
+            f"https://raw.githubusercontent.com/{owner}/{repo}/master/Triple_V_Config.json",
+            f"https://github.com/{owner}/{repo}/raw/main/Triple_V_Config.json",
+            f"https://github.com/{owner}/{repo}/blob/main/Triple_V_Config.json?raw=true"
+        ]
         
-        # Fallback to default version
-        return {"version": "1.0.0", "name": repo}
+        for config_url in config_urls:
+            try:
+                print(f"[DownloadManager] Trying to fetch config from: {config_url}")
+                response = requests.get(config_url, timeout=10)
+                if response.status_code == 200:
+                    # Try to parse as JSON
+                    try:
+                        return response.json()
+                    except json.JSONDecodeError:
+                        # If it's HTML (GitHub page), skip to next URL
+                        if "<!DOCTYPE html>" in response.text:
+                            continue
+                        print(f"[DownloadManager] Invalid JSON from {config_url}")
+            except requests.exceptions.RequestException as e:
+                print(f"[DownloadManager] Request error for {config_url}: {e}")
+            except Exception as e:
+                print(f"[DownloadManager] Error fetching config from {config_url}: {e}")
+
+        print(f"[DownloadManager] Could not fetch config from any URL for {owner}/{repo}")
+        return None
+        
         
     def get_download_url(self, github_url):
         """Get the download URL for the zipped tool"""
@@ -119,18 +128,18 @@ class DownloadManager:
             # Test each URL
             for url in download_urls:
                 try:
-                    print(f"Checking if zip exists at: {url}")
+                    print(f"[DownloadManager] Checking if zip exists at: {url}")
                     response = requests.head(url, timeout=5, allow_redirects=True)
                     if response.status_code == 200:
                         # Verify it's actually a zip file by checking content type
                         content_type = response.headers.get('content-type', '')
                         if 'application/zip' in content_type or 'application/octet-stream' in content_type or url.endswith('.zip'):
-                            print(f"Found zip file at: {url}")
+                            print(f"[DownloadManager] Found zip file at: {url}")
                             return url
                 except Exception as e:
-                    print(f"Error checking {url}: {e}")
+                    print(f"[DownloadManager] Error checking {url}: {e}")
         
-        print(f"Could not find zip file for {owner}/{repo}")
+        print(f"[DownloadManager] Could not find zip file for {owner}/{repo}")
         return None
         
     def download_tool(self, github_url, tool_name, parent_widget=None):
@@ -139,7 +148,14 @@ class DownloadManager:
         config = self.fetch_tool_config(github_url)
         if not config:
             QMessageBox.warning(parent_widget, "Error", 
-                              "Could not fetch tool information from GitHub.")
+                              "Could not fetch tool configuration from GitHub.\n"
+                              "Please ensure Triple_V_Config.json exists in the repository.")
+            return False
+        
+        # Validate config has required fields
+        if "version" not in config:
+            QMessageBox.warning(parent_widget, "Error", 
+                              "Invalid Triple_V_Config.json: missing 'version' field.")
             return False
           
         # Get download URL
@@ -157,7 +173,7 @@ class DownloadManager:
         
         try:
             # Download the file
-            print(f"Downloading from: {download_url}")
+            print(f"[DownloadManager] Downloading from: {download_url}")
             response = requests.get(download_url, stream=True, timeout=30)
             
             if response.status_code != 200:
@@ -186,11 +202,17 @@ class DownloadManager:
                 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                     # Extract the zip
                     zip_ref.extractall(tool_dir)
-                    print(f"Extracted files: {zip_ref.namelist()}")
+                    print(f"[DownloadManager] Extracted files: {zip_ref.namelist()}")
             except zipfile.BadZipFile:
                 raise Exception("Downloaded file is not a valid zip archive")
                 
-                
+            
+            # Save config file
+            config_path = tool_dir / "Triple_V_Config.json"
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=4)
+
+
             # Update installed tools registry
             self.installed_tools[tool_name] = {
                 "version": config["version"],
@@ -209,24 +231,30 @@ class DownloadManager:
             
         except Exception as e:
             progress.close()
-            print(f"Download error: {str(e)}")
+            print(f"[DownloadManager] Download error: {str(e)}")
             QMessageBox.critical(parent_widget, "Error", 
                                f"Failed to download tool: {str(e)}")
             return False
             
     def check_tool_update(self, github_url, current_version):
         """Check if a tool has an update available"""
+        print(f"[DownloadManager] Checking update for {github_url}, current version: {current_version}")
         config = self.fetch_tool_config(github_url)
         if not config:
+            print("[DownloadManager] Could not fetch remote config")
             return False, None
             
         latest_version = config.get("version", "0.0.0")
+        print(f"[DownloadManager] Remote version: {latest_version}, Local version: {current_version}")
         
         try:
             if version.parse(latest_version) > version.parse(current_version):
+                print(f"[DownloadManager] Update available: {current_version} -> {latest_version}")
                 return True, latest_version
+            else:
+                print("[DownloadManager] No update needed")
         except Exception as e:
-            print(f"Error comparing versions: {e}")
+            print(f"[DownloadManager] Error comparing versions: {e}")
             
         return False, None
         

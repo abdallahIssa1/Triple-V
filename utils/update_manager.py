@@ -181,12 +181,12 @@ class UpdateManager:
                 # Use a batch script to rename the running exe
                 if getattr(sys, 'frozen', False):
                     batch_content = f"""
-@echo off
-timeout /t 2 /nobreak > nul
-move /y "{current_exe}" "{backup_path}"
-move /y "{new_exe_path}" "{current_exe.parent / f'TripleV_v{new_version}.exe'}"
-del "%~f0"
-"""
+                    @echo off
+                    timeout /t 2 /nobreak > nul
+                    move /y "{current_exe}" "{backup_path}"
+                    move /y "{new_exe_path}" "{current_exe.parent / f'TripleV_v{new_version}.exe'}"
+                    del "%~f0"
+                    """
                     batch_path = current_exe.parent / "update.bat"
                     with open(batch_path, 'w') as f:
                         f.write(batch_content)
