@@ -40,7 +40,7 @@ class Settings:
         Extract version from executable filename (e.g., TripleV_v2.0.0.exe -> 2.0.0)
         Falls back to "1.0.0" if pattern not found
         """
-        default_version = "4.0.0"
+        default_version = "5.0.0"
 
         try:
             # Determine path to the running executable or script

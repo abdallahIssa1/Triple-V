@@ -3,29 +3,12 @@
         {
             "name": "NvM Dump Analyzer",
             "description": "Analyze the dump of the NvM -FEE based- and gets you all the info you have dreamt of.",
-            "github_url": "https://github.com/example/NvM-Dump-Analyzer",
+            "github_url": "https://github.com/",
             "icon": "📊"
-        }
+        }        
     ],
     "Adaptive_AUTOSAR": [
-        {
-            "name": "Code Generator Pro",
-            "description": "Advanced code generation utility",
-            "github_url": "https://github.com/example/code-generator-pro",
-            "icon": "💻"
-        },
-        {
-            "name": "Performance Monitor",
-            "description": "Real-time system performance analysis",
-            "github_url": "https://github.com/example/performance-monitor",
-            "icon": "📈"
-        },
-        {
-            "name": "Debug Assistant",
-            "description": "Enhanced debugging capabilities",
-            "github_url": "https://github.com/example/debug-assistant",
-            "icon": "🛠️"
-        }
+        
     ],
     "generic": [
         {
