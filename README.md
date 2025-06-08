@@ -47,7 +47,7 @@
 - **Seamless Updates**
   - Self-updating mechanism for Triple V Application itself.
   - Individual tool update mechanism.
-  - Version-aware executable naming (e.g., `TripleV_v4.0.0.exe`)
+  - Version-aware executable naming (e.g., `TripleV_v5.0.0.exe`)
 - **Community-Driven**
   - "Add to Vault" feature for tool submissions.
   - Email-based contribution workflow.
@@ -66,8 +66,8 @@
 1. **Download the latest release**
    https://github.com/abdallahIssa1/Triple-V/releases/latest  
 2. **Extract and run**  
-   - Extract `TripleV_v4.0.0.zip`  
-   - Run `TripleV_v4.0.0.exe`  
+   - Extract `TripleV_v5.0.0.zip`  
+   - Run `TripleV_v5.0.0.exe`  
 3. **First launch**
    - Triple V will create necessary directories.
    - Check for updates automatically.
@@ -177,7 +177,7 @@ Triple-V/
 ```
 #### Building Executable
 ```
-pyinstaller --name="TripleV_v4.0.0" \
+pyinstaller --name="TripleV_v5.0.0" \
             --onefile \
             --windowed \
             --icon=assets/icon.ico \
