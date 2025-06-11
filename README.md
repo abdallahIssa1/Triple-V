@@ -225,7 +225,7 @@ We welcome contributions from all Vehiclevo engineers!
 - Email: abdallah.issa@vehiclevo.com -> (TODO: to be replaced by triplev@vehiclevo.com or something like).
 
 ## License
-Copyright © 2024 Vehiclevo. All rights reserved.
+Copyright © 2025 Vehiclevo. All rights reserved.
 
 This software is proprietary to Vehiclevo and for internal use only.
 
