@@ -110,7 +110,6 @@ class StyledButton(QPushButton):
 class MainView(QWidget):
     add_vault_clicked = pyqtSignal()
     about_clicked = pyqtSignal()
-    check_updates_clicked = pyqtSignal()
     
     def __init__(self):
         super().__init__()
@@ -135,11 +134,8 @@ class MainView(QWidget):
         self.about_btn = StyledButton("About")
         self.about_btn.clicked.connect(self.about_clicked.emit)
         
-        self.check_updates_btn = StyledButton("Check for Updates")
-        self.check_updates_btn.clicked.connect(self.check_updates_clicked.emit)
         
         button_layout.addWidget(self.add_vault_btn)
         button_layout.addWidget(self.about_btn)
-        button_layout.addWidget(self.check_updates_btn)
         
         layout.addLayout(button_layout)
