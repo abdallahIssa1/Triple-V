@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                            QPushButton, QStackedWidget, QLabel, QGraphicsDropShadowEffect)
+                            QPushButton, QStackedWidget, QLabel, QGraphicsDropShadowEffect, QMessageBox)
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, pyqtSignal, QTimer
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtSvg import QSvgWidget
@@ -12,6 +12,7 @@ from ui.dialogs.about_dialog import AboutDialog
 from utils.update_manager import UpdateManager
 import webbrowser
 from PyQt5.QtWidgets import QDesktopWidget
+from ui.views.my_tools_view import MyToolsView
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -36,7 +37,6 @@ class MainWindow(QMainWindow):
         self.setGeometry(x, y, width, height)
         self.setMinimumSize(800, 600)
 
-
         # Set dark palette
         self.set_dark_palette()
         
@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
         
         # Sidebar
         self.sidebar = Sidebar()
+        # FIX: Connect the navigation signal to the handler
         self.sidebar.navigation_clicked.connect(self.on_navigation_clicked)
         main_layout.addWidget(self.sidebar)
         
@@ -67,12 +68,14 @@ class MainWindow(QMainWindow):
         self.Classical_AUTOSAR = ToolsView("Classical AUTOSAR Tools", "Classical_AUTOSAR")
         self.Adaptive_AUTOSAR_view = ToolsView("Adaptive AUTOSAR Tools", "Adaptive_AUTOSAR")
         self.generic_view = ToolsView("Generic Tools", "generic")
+        self.my_tools_view = MyToolsView()
         
         # Add views to stack
         self.content_stack.addWidget(self.main_view)
         self.content_stack.addWidget(self.Classical_AUTOSAR)
         self.content_stack.addWidget(self.Adaptive_AUTOSAR_view)
         self.content_stack.addWidget(self.generic_view)
+        self.content_stack.addWidget(self.my_tools_view)
         
         # Set initial view
         self.content_stack.setCurrentWidget(self.main_view)
@@ -95,6 +98,7 @@ class MainWindow(QMainWindow):
         self.setPalette(dark_palette)
         
     def on_navigation_clicked(self, view_name):
+        print(f"Switching to view: {view_name}")  # Debug line
         if view_name == "main":
             self.content_stack.setCurrentWidget(self.main_view)
         elif view_name == "Classical_AUTOSAR":
@@ -103,6 +107,10 @@ class MainWindow(QMainWindow):
             self.content_stack.setCurrentWidget(self.Adaptive_AUTOSAR_view)
         elif view_name == "generic":
             self.content_stack.setCurrentWidget(self.generic_view)
+        elif view_name == "My downloaded Tools":  # FIX: Match the nav_id from sidebar
+            self.content_stack.setCurrentWidget(self.my_tools_view)
+            if hasattr(self.my_tools_view, 'refresh_tools'):
+                self.my_tools_view.refresh_tools()
             
     def show_add_vault_dialog(self):
         dialog = AddVaultDialog(self)
@@ -118,6 +126,5 @@ class MainWindow(QMainWindow):
         if has_update:
             self.update_manager.show_update_dialog(self, latest_version, update_data)
         else:
-            from PyQt5.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Updates", 
                                   f"Triple V is up to date (v{self.update_manager.current_version})")

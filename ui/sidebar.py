@@ -77,17 +77,22 @@ class Sidebar(QWidget):
             ("main", "Home", "🏠"),
             ("Classical_AUTOSAR", "Classical AUTOSAR Tools", "🌱"),
             ("Adaptive_AUTOSAR", "Adaptive AUTOSAR Tools", "🐧"),
-            ("generic", "Generic Tools", "🧩")
+            ("generic", "Generic Tools", "🧩"),
+            ("My downloaded Tools", "My downloaded Tools", "📥")  # FIX: Keep consistent nav_id
         ]
         
         for nav_id, text, icon in nav_items:
             btn = SidebarButton(text, icon)
             btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, n=nav_id: self.on_nav_clicked(n))
+            btn.setObjectName(nav_id)  # Set the nav_id as object name
+            # Store nav_id as property for easy access
+            btn.setProperty("nav_id", nav_id)
+            btn.clicked.connect(self.handle_nav_click)
             if nav_id == "main":
                 btn.setChecked(True)
             layout.addWidget(btn)
             self.nav_buttons.append(btn)
+            print(f"Added nav button: {nav_id}")  # Debug line
             
         layout.addStretch()
         
@@ -95,7 +100,7 @@ class Sidebar(QWidget):
         self.animation = QPropertyAnimation(self, b"minimumWidth")
         self.animation.setDuration(Settings.ANIMATION_DURATION)
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
-        
+
     def toggle_sidebar(self):
         self.expanded = not self.expanded
         
@@ -104,18 +109,22 @@ class Sidebar(QWidget):
         self.animation.setStartValue(self.width())
         self.animation.setEndValue(end_width)
         self.animation.start()
-        
-    def on_nav_clicked(self, nav_id):
-        # Uncheck all buttons
-        for btn in self.nav_buttons:
-            btn.setChecked(False)
-            
-        # Check clicked button
+    
+    def handle_nav_click(self):
         sender = self.sender()
         if sender:
+            nav_id = sender.property("nav_id")
+            print(f"Navigation clicked: {nav_id}")  # Debug line
+            
+            # Uncheck all buttons
+            for btn in self.nav_buttons:
+                btn.setChecked(False)
+                
+            # Check clicked button
             sender.setChecked(True)
             
-        self.navigation_clicked.emit(nav_id)
+            # Emit the signal
+            self.navigation_clicked.emit(nav_id)
         
     def paintEvent(self, event):
         painter = QPainter(self)

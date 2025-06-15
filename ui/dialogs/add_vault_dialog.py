@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QCheckBox, QPushButton, QMessageBox,
-    QComboBox, QScrollArea, QWidget
+    QComboBox, QScrollArea, QWidget, QTextEdit
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
@@ -271,6 +271,61 @@ class AddVaultDialog(QDialog):
         button_layout.addWidget(cancel_btn)
         layout.addLayout(button_layout)
 
+        # ----- TOOL ICON -----
+        icon_label = QLabel("Tool Icon (Emoji)")
+        icon_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        icon_label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
+        layout.addWidget(icon_label)
+
+        self.icon_input = QLineEdit()
+        self.icon_input.setPlaceholderText("e.g., 🔧 or 📊 or 💻")
+        self.icon_input.setMaxLength(2)  # Usually one emoji
+        self.icon_input.textChanged.connect(self.check_form_complete)
+        self.icon_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 2px solid #444;
+                border-radius: 8px;
+                padding: 12px 15px;
+                color: {Settings.TEXT_COLOR};
+                font-size: 20px;
+                min-height: 25px;
+            }}
+            QLineEdit:focus {{
+                border-color: {Settings.PRIMARY_COLOR};
+                background-color: rgba(0, 255, 136, 0.05);
+            }}
+        """)
+        layout.addWidget(self.icon_input)
+        layout.addSpacing(15)
+
+        # ----- TOOL DESCRIPTION -----
+        desc_label = QLabel("Tool Description")
+        desc_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
+        desc_label.setStyleSheet(f"color: {Settings.PRIMARY_COLOR};")
+        layout.addWidget(desc_label)
+
+        self.desc_input = QTextEdit()
+        self.desc_input.setPlaceholderText("Brief description of what your tool does...")
+        self.desc_input.setMaximumHeight(80)
+        self.desc_input.textChanged.connect(self.check_form_complete)
+        self.desc_input.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 2px solid #444;
+                border-radius: 8px;
+                padding: 12px 15px;
+                color: {Settings.TEXT_COLOR};
+                font-size: 14px;
+            }}
+            QTextEdit:focus {{
+                border-color: {Settings.PRIMARY_COLOR};
+                background-color: rgba(0, 255, 136, 0.05);
+            }}
+        """)
+        layout.addWidget(self.desc_input)
+        layout.addSpacing(15)
+
     def update_submit_button_style(self):
         if self.submit_btn.isEnabled():
             self.submit_btn.setStyleSheet(f"""
@@ -297,6 +352,7 @@ class AddVaultDialog(QDialog):
                     font-weight: bold;
                 }
             """)
+    
 
     def check_form_complete(self):
         # Check that all checkboxes are checked
@@ -326,7 +382,7 @@ class AddVaultDialog(QDialog):
             self.error_label.hide()
 
         # Enable submit only if everything is filled and valid
-        all_filled = bool(email and github_url)
+        all_filled = bool(email and github_url and icon and description)
         all_valid = bool(email_valid and url_valid)
         self.submit_btn.setEnabled(all_checked and all_filled and all_valid)
         self.update_submit_button_style()
@@ -336,7 +392,10 @@ class AddVaultDialog(QDialog):
         form_data = {
             "category": self.category_combo.currentText(),
             "email": self.email_input.text().strip(),
-            "github_url": self.github_input.text().strip()
+            "github_url": self.github_input.text().strip(),
+            "icon": self.icon_input.text().strip(),
+            "description": self.desc_input.toPlainText().strip()
+
         }
 
         # Send email
@@ -381,6 +440,8 @@ class AddVaultDialog(QDialog):
             Category: {form_data['category']}
             Submitted By: {form_data['email']}
             GitHub Repository: {form_data['github_url']}
+            Icon: {form_data['icon']}
+            Description: {form_data['description']}
             Submission Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
             Action Required from the Reviewers:

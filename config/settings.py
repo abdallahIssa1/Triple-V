@@ -121,13 +121,15 @@ class Settings:
                 return {
                     "Classical_AUTOSAR": [],
                     "Adaptive_AUTOSAR": [],
-                    "generic": []
+                    "generic": [],
+                    "My downloaded Tools": []
                 }
         # Default categories if no file is present
         return {
             "Classical_AUTOSAR": [],
             "Adaptive_AUTOSAR": [],
-            "generic": []
+            "generic": [],
+            "My downloaded Tools": []
         }
 
     @classmethod
