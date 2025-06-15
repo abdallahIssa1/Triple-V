@@ -143,6 +143,9 @@ class ToolCard(QFrame):
         if self.download_btn.text() == "Download":
             success = self.download_manager.download_tool(self.github_url, self.name)
             if success:
+                # Auto-open the tool after successful download
+                from ui.components.my_tool_card import MyToolCard
+                MyToolCard.run_tool_static(self.name, self.download_manager.downloads_dir / self.name)
                 self.check_installed_status()
         else:
             success = self.download_manager.update_tool(self.github_url, self.name)

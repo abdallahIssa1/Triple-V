@@ -120,17 +120,25 @@ class MyToolCard(QFrame):
         
     def run_tool(self):
         """Run the tool executable"""
+        self.run_tool_static(self.name, self.tool_path)
+
+    @staticmethod
+    def run_tool_static(tool_name, tool_path):
+        """Static method to run a tool from any location"""
+        from pathlib import Path
+        tool_path = Path(tool_path)
+
         try:
             # Find the exe file in the tool directory
-            exe_files = list(self.tool_path.glob("*.exe"))
+            exe_files = list(tool_path.glob("*.exe"))
             if exe_files:
                 exe_path = exe_files[0]  # Take the first exe found
-                subprocess.Popen(str(exe_path), cwd=str(self.tool_path))
-                QMessageBox.information(self, "Success", f"{self.name} started successfully!")
+                subprocess.Popen(str(exe_path), cwd=str(tool_path))
+                print(f"{tool_name} started successfully!")
             else:
-                QMessageBox.warning(self, "Error", "No executable file found in tool directory")
+                print(f"No executable file found in {tool_name} directory")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to run tool: {str(e)}")
+            print(f"Failed to run {tool_name}: {str(e)}")
             
     def open_folder(self):
         """Open the tool folder in explorer"""
