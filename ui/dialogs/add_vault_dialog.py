@@ -235,42 +235,6 @@ class AddVaultDialog(QDialog):
 
         layout.addStretch()  # Push buttons to the bottom
 
-        # ----- BUTTONS -----
-        button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(0, 20, 0, 0)  # Add top margin
-
-        self.submit_btn = QPushButton("Submit to Vault")
-        self.submit_btn.setFixedHeight(45)
-        self.submit_btn.setFixedWidth(180)
-        self.submit_btn.setEnabled(False)
-        self.submit_btn.setCursor(Qt.PointingHandCursor)
-        self.submit_btn.clicked.connect(self.submit_form)
-        self.update_submit_button_style()
-
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.setFixedHeight(45)
-        cancel_btn.setFixedWidth(180)
-        cancel_btn.setCursor(Qt.PointingHandCursor)
-        cancel_btn.clicked.connect(self.reject)
-        cancel_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: transparent;
-                border: 2px solid {Settings.PRIMARY_COLOR};
-                border-radius: 8px;
-                color: {Settings.PRIMARY_COLOR};
-                font-weight: bold;
-                font-size: 15px;
-            }}
-            QPushButton:hover {{
-                background-color: {Settings.PRIMARY_COLOR};
-                color: {Settings.BACKGROUND_COLOR};
-            }}
-        """)
-
-        button_layout.addWidget(self.submit_btn)
-        button_layout.addWidget(cancel_btn)
-        layout.addLayout(button_layout)
-
         # ----- TOOL ICON -----
         icon_label = QLabel("Tool Icon (Emoji)")
         icon_label.setFont(QFont("Segoe UI", 13, QFont.Bold))
@@ -325,6 +289,43 @@ class AddVaultDialog(QDialog):
         """)
         layout.addWidget(self.desc_input)
         layout.addSpacing(15)
+        
+
+        # ----- BUTTONS -----
+        button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 20, 0, 0)  # Add top margin
+
+        self.submit_btn = QPushButton("Submit to Vault")
+        self.submit_btn.setFixedHeight(45)
+        self.submit_btn.setFixedWidth(180)
+        self.submit_btn.setEnabled(False)
+        self.submit_btn.setCursor(Qt.PointingHandCursor)
+        self.submit_btn.clicked.connect(self.submit_form)
+        self.update_submit_button_style()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setFixedHeight(45)
+        cancel_btn.setFixedWidth(180)
+        cancel_btn.setCursor(Qt.PointingHandCursor)
+        cancel_btn.clicked.connect(self.reject)
+        cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                border: 2px solid {Settings.PRIMARY_COLOR};
+                border-radius: 8px;
+                color: {Settings.PRIMARY_COLOR};
+                font-weight: bold;
+                font-size: 15px;
+            }}
+            QPushButton:hover {{
+                background-color: {Settings.PRIMARY_COLOR};
+                color: {Settings.BACKGROUND_COLOR};
+            }}
+        """)
+
+        button_layout.addWidget(self.submit_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
 
     def update_submit_button_style(self):
         if self.submit_btn.isEnabled():
@@ -359,6 +360,8 @@ class AddVaultDialog(QDialog):
         all_checked = all(cb.isChecked() for cb in self.checkboxes)
         email = self.email_input.text().strip()
         github_url = self.github_input.text().strip()
+        icon = self.icon_input.text().strip()
+        description = self.desc_input.toPlainText().strip()
 
         # Validate email
         email_valid = bool(re.match(self.mail_regex, email)) if email else False
