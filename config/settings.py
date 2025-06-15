@@ -40,7 +40,7 @@ class Settings:
         Extract version from executable filename (e.g., TripleV_v2.0.0.exe -> 2.0.0)
         Falls back to "1.0.0" if pattern not found
         """
-        default_version = "5.0.0"
+        default_version = "1.0.0"
 
         try:
             # Determine path to the running executable or script
@@ -61,7 +61,7 @@ class Settings:
             match = re.search(r'TripleV_v(\d+\.\d+\.\d+)', filename.replace('.exe', ''))
             if match:
                 version_str = match.group(1)
-                print(f"[Settings] Extracted version {version} from {filename}")
+                print(f"[Settings] Extracted version {version_str} from {filename}")
                 return version_str
             else:
                 print(f"[Settings] Could not extract version from {filename}, using default")

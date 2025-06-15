@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QStackedWidget, QLabel, QGraphicsDropShadowEffect, QMessageBox)
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, pyqtSignal, QTimer, QThread
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtSvg import QSvgWidget
 from config.settings import Settings
@@ -14,11 +14,29 @@ import webbrowser
 from PyQt5.QtWidgets import QDesktopWidget
 from ui.views.my_tools_view import MyToolsView
 
+class UpdateCheckThread(QThread):
+    update_available = pyqtSignal(str, dict)  # version, release_data
+    
+    def __init__(self, update_manager):
+        super().__init__()
+        self.update_manager = update_manager
+        
+    def run(self):
+        try:
+            has_update, latest_version, release_data = self.update_manager.check_app_update()
+            if has_update:
+                self.update_available.emit(latest_version, release_data)
+        except Exception as e:
+            print(f"Update check failed: {e}")
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.update_manager = UpdateManager()
         self.init_ui()
+        # Start automatic update check after UI is ready
+        QTimer.singleShot(2000, self.check_updates_automatically)
         
     def init_ui(self):
         self.setWindowTitle(Settings.APP_NAME)
@@ -63,7 +81,6 @@ class MainWindow(QMainWindow):
         self.main_view = MainView()
         self.main_view.add_vault_clicked.connect(self.show_add_vault_dialog)
         self.main_view.about_clicked.connect(self.show_about_dialog)
-        self.main_view.check_updates_clicked.connect(self.check_for_updates)
         
         self.Classical_AUTOSAR = ToolsView("Classical AUTOSAR Tools", "Classical_AUTOSAR")
         self.Adaptive_AUTOSAR_view = ToolsView("Adaptive AUTOSAR Tools", "Adaptive_AUTOSAR")
@@ -119,12 +136,19 @@ class MainWindow(QMainWindow):
     def show_about_dialog(self):
         dialog = AboutDialog(self)
         dialog.exec_()
+    
+    def check_updates_automatically(self):
+        """Check for updates automatically in background"""
+        self.update_thread = UpdateCheckThread(self.update_manager)
+        self.update_thread.update_available.connect(self.show_update_notification)
+        self.update_thread.start()
         
-    def check_for_updates(self):
-        # Check for Triple V updates
-        has_update, latest_version, update_data = self.update_manager.check_app_update()
-        if has_update:
-            self.update_manager.show_update_dialog(self, latest_version, update_data)
-        else:
-            QMessageBox.information(self, "No Updates", 
-                                  f"Triple V is up to date (v{self.update_manager.current_version})")
+    def show_update_notification(self, latest_version, release_data):
+        """Show update notification only if update is available"""
+        reply = QMessageBox.question(
+            self, "Update Available", 
+            f"Triple V v{latest_version} is available!\n\nWould you like to download and install it now?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            self.update_manager.show_update_dialog(self, latest_version, release_data)
